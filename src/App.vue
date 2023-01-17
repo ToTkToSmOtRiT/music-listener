@@ -1,14 +1,17 @@
 <template>
-  <h1>Music listener</h1>
+  <div id="app">
+    <h1>Music listener</h1>
+    <MusicSection/>
+  </div>
 </template>
 
 <script>
-
+import MusicSection from './components/MusicSection.vue';
 
 export default {
   name: 'App',
   components: {
-
+    MusicSection
   }
 }
 </script>
