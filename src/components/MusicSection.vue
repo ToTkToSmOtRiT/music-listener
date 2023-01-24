@@ -36,8 +36,22 @@ export default {
 </script> 
 
 
-<style>
-
-
-
+<style lang="scss">
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital@1&display=swap');
+#player{
+    font-family: 'EB Garamond', serif;
+    font-size: 20px;
+    .play{
+        cursor: pointer;
+        margin: 20px;
+    }
+    .prev{
+        cursor: pointer;
+        margin: 20px;
+    }
+    .next{
+        cursor: pointer;
+        margin: 20px;
+    }
+}
 </style>

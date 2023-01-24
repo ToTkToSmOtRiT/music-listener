@@ -2,27 +2,36 @@
   <div id="app">
     <h1>Music listener</h1>
     <MusicSection/>
+    <LikeOrNot/>
+    <CommentsSection/>
   </div>
 </template>
 
 <script>
 import MusicSection from './components/MusicSection.vue';
+import LikeOrNot from './components/LikeOrNotSection.vue';
+import CommentsSection from './components/CommentsSection.vue';
 
 export default {
   name: 'App',
   components: {
-    MusicSection
+    MusicSection,
+    LikeOrNot,
+    CommentsSection
   }
 }
 </script>
 
 <style lang="scss">
+@import url('https://fonts.googleapis.com/css2?family=Aboreto&display=swap');
 #app {
-    font-family: Avenir, Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    
     text-align: center;
-    color: #1e699b;
+    
     margin-top: 60px;
+}
+h1{
+    font-family: 'Aboreto', cursive;
+    color: #7e6114;
 }
 </style>

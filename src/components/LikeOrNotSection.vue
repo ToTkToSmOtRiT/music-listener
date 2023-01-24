@@ -1,5 +1,7 @@
 <template>
-
+    <div id="like">
+        
+    </div>
 </template>
 
 

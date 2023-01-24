@@ -1,5 +1,7 @@
 <template>
-
+    <div id="comments">
+        
+    </div>
 </template>
 
 
