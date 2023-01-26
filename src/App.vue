@@ -1,7 +1,9 @@
 <template>
   <div id="app">
-    <h1>Music listener</h1>
-    <MusicSection/>
+    <div id="music-section">
+      <h1>Music listener</h1>
+      <MusicSection/>
+    </div>
     <LikeOrNot/>
     <CommentsSection/>
   </div>
@@ -25,10 +27,12 @@ export default {
 <style lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Aboreto&display=swap');
 #app {
-    
     text-align: center;
-    
     margin-top: 60px;
+    #music-section{
+      height: 600px;
+      background-color: #aca39e;
+    }
 }
 h1{
     font-family: 'Aboreto', cursive;
