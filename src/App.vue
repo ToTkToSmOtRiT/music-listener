@@ -31,7 +31,6 @@ export default {
     margin-top: 60px;
     #music-section{
       height: 600px;
-      background-color: #aca39e;
     }
 }
 h1{
