@@ -1,14 +1,12 @@
 <template>
     <div id="player">
-        <p>{{current.artist}} - {{current.song}}</p>
+        <p>{{ current.artist }} - {{ current.song }}</p>
         <!-- <audio :class="song" src="./assets/music/Killswitch engage - Arms of Sorrow(piano ver.).mp3" ></audio> -->
         <div class="buttons">
-            <img class="prev" src="@/assets/icon2.png" alt="Previous">
-            <img class="play" v-if="!isPlay" @click="playSong()"
-                src="@/assets/icon1.png" alt="Play">
-            <img class="pause" v-else @click="stopSong()"
-                src="@/assets/icon4.png" alt="Pause">
-            <img class="next" src="@/assets/icon3.png" alt="Next ">
+            <img class="prev" src="@/assets/icon2.png" @click="prevSong()" alt="Previous">
+            <img class="play" v-if="!isPlay" @click="playSong()" src="@/assets/icon1.png" alt="Play">
+            <img class="pause" v-else @click="stopSong()" src="@/assets/icon4.png" alt="Pause">
+            <img class="next" src="@/assets/icon3.png" @click="nextSong()" alt="Next ">
         </div>
     </div>
 </template>
@@ -24,35 +22,63 @@ export default {
             song: new Audio(),
             isPlay: false,
             current: {},
-            index: 0, 
+            index: 0,
             songs: [
                 {
                     artist: 'Killswitch Engage',
                     song: 'Arms of Sorrow (piano ver.)',
                     src: require('@/assets/music/Killswitch engage - Arms of Sorrow(piano ver.).mp3')
-                }
+                },
+                {
+                    artist: 'Killswitch Engage',
+                    song: 'My curse (piano ver.)',
+                    src: require('@/assets/music/Killswitch engage - My curse(piano ver.).mp3')
+                },
+                {
+                    artist: 'Killswitch Engage',
+                    song: 'Rose Of Sharyn (piano ver.)',
+                    src: require('@/assets/music/Killswitch Engage - Rose Of Sharyn (Piano Cover).mp3')
+                },
             ]
         }
     },
     components: {
 
     },
-    created () {
+    created() {
         this.current = this.songs[this.index]
         this.song.src = this.current.src
 
     },
     methods: {
-        playSong(){
+        playSong() {
             this.song.play()
             this.isPlay = true
         },
-        stopSong(){
-            if(this.isPlay){
-                this.song.pause()
-                this.isPlay = false
+        stopSong() {
+            this.song.pause()
+            this.isPlay = false
+        },
+        nextSong() {
+            if (this.songs.length-1 == this.index) {
+                this.index = 0
+                this.current = this.songs[this.index]
+            } else {
+                this.index = this.index + 1
+                this.current = this.songs[this.index]
             }
-        }
+            this.song.src = this.current.src
+        },
+        prevSong() {
+            if (this.index == 0) {
+                this.index = this.songs.length-1
+                this.current = this.songs[this.index]
+            } else {
+                this.index = this.index - 1
+                this.current = this.songs[this.index]
+            }
+            this.song.src = this.current.src
+        },
     }
 }
 
