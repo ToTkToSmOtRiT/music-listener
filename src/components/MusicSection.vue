@@ -1,6 +1,7 @@
 <template>
     <div id="player">
         <p>{{ current.artist }} - {{ current.song }}</p>
+        <img src="@/assets/cover.png" alt="cover">
         <!-- <audio :class="song" src="./assets/music/Killswitch engage - Arms of Sorrow(piano ver.).mp3" ></audio> -->
         <div class="buttons">
             <img class="prev" src="@/assets/icon2.png" @click="prevSong()" alt="Previous">
