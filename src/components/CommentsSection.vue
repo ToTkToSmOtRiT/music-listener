@@ -2,8 +2,8 @@
     <div id="comments">
         <h3>Comments</h3>
         <form action="">
-            <input class="comment" type="text" placeholder="Введите текст">
-            <button type="submit">Отправить</button>
+            <input class="comment" type="text" placeholder="Write your comment...">
+            <button type="submit">Send</button>
         </form>
     </div>
 </template>
