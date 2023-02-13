@@ -22,6 +22,6 @@
 }
 h1{
     font-family: 'Aboreto', cursive;
-    color: #7e6114;
+    color: #9b7c27;
 }
 </style>
