@@ -27,6 +27,8 @@ export default {
 
 <style>
 #music-section {
+    position: relative;
+    padding-top: 50px;
     height: 600px;
 }
 </style>

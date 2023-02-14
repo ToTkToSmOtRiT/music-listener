@@ -1,31 +1,60 @@
 <template>
     <div>
         <div id="head-section">
-            <h1>Wellcome to the music listener app</h1>
-            <RouterLink to="/listener">Start Listening</RouterLink>
+            <!-- <transition name="fade" mode="out-in"> -->
+                <h1>Wellcome to the music listener app</h1>
+            <!-- </transition> -->
+            <RouterLink class="start-btn" to="/listener">Start Listening</RouterLink>
         </div>
         <div id="main-section">
-
+            <h1>Main section</h1>
+            <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Excepturi itaque temporibus eaque incidunt veritatis laudantium repudiandae numquam voluptatem magnam harum.</p>
         </div>
         <div id="genres">
-
+            <h1>Genres</h1>
         </div>
     </div>
 </template>
 
 <style lang="scss">
-#head-section{
+
+// .fade-enter-active, .fade-leave-active {
+//   transition: opacity .5s;
+// }
+
+
+#head-section {
     background-color: black;
     opacity: 0.9;
     height: 600px;
-    position:relative;
+    position: relative;
     padding-top: 150px;
     background-image: url('@/assets/pxfuel.jpg');
     background-size: cover;
-    h1{
+
+    h1 {
         text-shadow: 1px 1px 1px black;
     }
-    
-    
+
+    .start-btn {
+        position: relative;
+        font-size: 20px;
+        top: 200px;
+        text-decoration-line: none;
+        color: white;
+        padding: 10px;
+        border: 2px solid white;
+    }
+}
+
+#main-section {
+    height: 1000px;
+    padding: 50px;
+    margin: 50px 0px;
+}
+#genres {
+    height: 600px;
+    padding: 50px;
+    margin: 50px 0px;
 }
 </style>
