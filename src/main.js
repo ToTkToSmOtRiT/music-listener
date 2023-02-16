@@ -5,6 +5,8 @@ import App from './App.vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Home from './views/Home'
 import Listener from './views/Listener'
+import 'aos/dist/aos.css'
+import AOS from 'aos'
 
 // createApp(App).mount('#app')
 
@@ -31,6 +33,8 @@ const router = createRouter({
 
 
 const app = createApp(App)
+
+app.use(AOS.init())
 
 app.use(router)
 
