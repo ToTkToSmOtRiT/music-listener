@@ -10,6 +10,11 @@
             <h1 data-aos="fade" data-aos-duration="500">Main section</h1>
             <p data-aos="fade-up" data-aos-duration="1500">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Excepturi itaque temporibus eaque incidunt
                 veritatis laudantium repudiandae numquam voluptatem magnam harum.</p>
+            <!-- <ul data-aos="fade-up" data-aos-duration="1500">
+                <li></li>
+                <li></li>
+                <li></li>
+            </ul> -->
         </div>
         <div id="genres">
             <h1 data-aos="fade" data-aos-duration="1500">Genres</h1>
@@ -27,7 +32,7 @@
     background-color: black;
     opacity: 0.9;
     height: 700px;
-    position: relative;
+    // position: relative;
     padding-top: 150px;
     background-image: url('@/assets/pxfuel.jpg');
     background-size: cover;

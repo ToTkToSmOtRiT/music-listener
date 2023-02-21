@@ -1,5 +1,5 @@
 <template>
-    <header class="p-3 text-bg-dark">
+    <div id="navbar">
         <nav class="navbar navbar-expand navbar-dark bg-dark" aria-label="Second navbar example">
             <div class="container-fluid">
 
@@ -13,23 +13,49 @@
                         </li>
                     </ul>
                     <div class="text-end">
-                        <button type="button" class="btn btn-outline-light me-2">Login</button>
+                        <button type="button" class="btn btn-outline-light me-2" @click="showModal">Login</button>
                         <button type="button" class="btn btn-outline-light me-2">Sign-up</button>
                     </div>
                 </div>
             </div>
         </nav>
-    </header>
+        <LogInModal v-show="isModalVisible" @close="closeModal" />
+    </div>
 </template>
 
 <script>
 
+import LogInModal from '@/components/LogInModal.vue';
+
 export default {
     name: "HeadBar",
+    components: {
+        LogInModal,
+    },
+    data() {
+        return {
+            isModalVisible: false,
+        };
+    },
+    methods: {
+        showModal() {
+            this.isModalVisible = true;
+        },
+        closeModal() {
+            this.isModalVisible = false;
+        }
+    },
 
 }
 </script>
 
 <style lang="scss">
+header {
+    width: 100%;
 
+}
+
+#navbar {
+    position: sticky;
+}
 </style>

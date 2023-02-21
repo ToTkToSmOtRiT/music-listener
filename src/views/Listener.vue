@@ -5,21 +5,21 @@
             <h1>Music listener</h1>
             <MusicSection />
         </div>
-        <LikeOrNot />
+        <!-- <LikeOrNot /> -->
         <CommentsSection />
     </div>
 </template>
 
 <script>
 import MusicSection from '@/components/MusicSection.vue';
-import LikeOrNot from '@/components/LikeOrNotSection.vue';
+// import LikeOrNot from '@/components/LikeOrNotSection.vue';
 import CommentsSection from '@/components/CommentsSection.vue';
 
 export default {
     name: 'App',
     components: {
         MusicSection,
-        LikeOrNot,
+        // LikeOrNot,
         CommentsSection
     }
 }

@@ -1,27 +1,36 @@
 <template>
-  <HeadBar/>
-  <div id="app">
-    <router-view/>
-  </div>
+  <header class="p-3 text-bg-dark">
+    <HeadBar />
+  </header>
+    <div id="main">
+      <router-view />
+    </div>
 </template>
 
 <script>
-  import HeadBar from './views/HeadBar.vue';
-  export default{
-    components: {
-      HeadBar
-    }
+import HeadBar from './views/HeadBar.vue';
+export default {
+  components: {
+    HeadBar
   }
+}
 </script>
 
 <style lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Aboreto&display=swap');
-#app {
-    text-align: center;
-    margin-bottom: 60px;
+
+header {
+  // margin-bottom: 60px;
 }
-h1{
-    font-family: 'Aboreto', cursive;
-    color: #9b7c27;
+
+#app {
+  position:static;
+  text-align: center;
+
+}
+
+h1 {
+  font-family: 'Aboreto', cursive;
+  color: #9b7c27;
 }
 </style>
