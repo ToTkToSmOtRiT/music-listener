@@ -24,9 +24,6 @@
 
 
 <style lang="scss">
-// .fade-enter-active, .fade-leave-active {
-//   transition: opacity .5s;
-// }
 
 #head-section {
     background-color: black;

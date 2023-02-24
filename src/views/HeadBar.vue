@@ -13,37 +13,46 @@
                         </li>
                     </ul>
                     <div class="text-end">
-                        <button type="button" class="btn btn-outline-light me-2" @click="showModal">Login</button>
-                        <button type="button" class="btn btn-outline-light me-2">Sign-up</button>
+                        <button type="button" class="btn btn-outline-light me-2" @click="showLoginModal">Login</button>
+                        <button type="button" class="btn btn-outline-light me-2" @click="showSignUpModal">Sign Up</button>
+
                     </div>
                 </div>
             </div>
         </nav>
-        <LogInModal v-show="isModalVisible" @close="closeModal" />
+        <div>
+            <Modal  v-show="isModalVisible" :mode="isLogin? true: false" @close="closeModal" />
+        </div>
     </div>
 </template>
 
 <script>
 
-import LogInModal from '@/components/LogInModal.vue';
+import Modal from '@/components/LogInModal.vue';
 
 export default {
     name: "HeadBar",
     components: {
-        LogInModal,
+        Modal,
     },
     data() {
         return {
             isModalVisible: false,
+            isLogin: true,
         };
     },
     methods: {
-        showModal() {
+        showLoginModal() {
+            this.isLogin = true
+            this.isModalVisible = true;
+        },
+        showSignUpModal(){
+            this.isLogin = false
             this.isModalVisible = true;
         },
         closeModal() {
             this.isModalVisible = false;
-        }
+        },
     },
 
 }
