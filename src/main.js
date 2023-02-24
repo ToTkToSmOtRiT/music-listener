@@ -1,19 +1,11 @@
 import { createApp } from 'vue'
-// import Vue from 'vue'
 import App from './App.vue'
-// import router from './router'
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import Home from './views/Home'
 import Listener from './views/Listener'
 import 'aos/dist/aos.css'
 import AOS from 'aos'
-
-// createApp(App).mount('#app')
-
-// new Vue({
-//     router,
-//     render: h => h(App),
-// }).$mount('#app')
+import ApiPlugin from '../plugins/api'
 
 const routes = [
     {
@@ -27,15 +19,15 @@ const routes = [
 ]
 
 const router = createRouter({
-    history: createWebHashHistory(),
+    history: createWebHistory(),
     routes,
 })
 
 
 const app = createApp(App)
 
+app.use(ApiPlugin)
 app.use(AOS.init())
-
 app.use(router)
 
 app.mount('#app')
