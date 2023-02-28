@@ -1,21 +1,21 @@
-// import Vue from 'vue'
-// import Router from 'vue-router'
-// import Home from '@/views/Home'
-// import Listener from '@/views/Listener'
+import Home from '@/views/Home'
+import Listener from '@/views/Listener'
+import { createRouter, createWebHistory } from 'vue-router'
 
-// Vue.use(Router)
+const router = createRouter({
+    history: createWebHistory(),
+    routes: [{
+        path: '/',
+        name: 'Home',
+        component: Home
+    },
+    {
+        path: '/listener',
+        name: 'Listener',
+        component: Listener
+    },
+    ]
+})
 
-// export default new Router({
-//     mode: 'history',
-//     routes: [
-//         {
-//             path: '/',
-//             component: Home
-//         },
-//         {
-//             path: '/listener',
-//             component: Listener
-//         }
-//     ]
-// })
+export default router
 

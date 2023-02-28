@@ -5,13 +5,17 @@
     <div id="main">
       <router-view />
     </div>
+    <Footer/>
 </template>
 
 <script>
 import HeadBar from './views/HeadBar.vue';
+import Footer from './views/Footer.vue';
+
 export default {
   components: {
-    HeadBar
+    HeadBar,
+    Footer,
   }
 }
 </script>
