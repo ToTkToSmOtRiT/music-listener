@@ -2,7 +2,7 @@
     <div>
         <div id="head-section" data-aos="fade">
             <!-- <transition name="fade" mode="out-in"> -->
-            <h1 data-aos="fade">Wellcome to the music listener app</h1>
+            <h1>Wellcome to the music listener app</h1>
             <!-- </transition> -->
             <RouterLink data-aos="fade" class="start-btn" to="/listener">Start Listening</RouterLink>
         </div>
@@ -52,6 +52,9 @@
 
 
 <style lang="scss">
+// [v-cloak]{
+//     display: none;
+// }
 #head-section {
     background-color: black;
     opacity: 0.9;

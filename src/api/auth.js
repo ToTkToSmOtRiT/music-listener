@@ -8,6 +8,6 @@ export default function(instance){
         },
         logout(){
             return instance.delete('auth/logout')
-        }
+        },
     }
 }

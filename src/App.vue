@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import HeadBar from './views/HeadBar.vue';
+import HeadBar from './components/HeadBar.vue';
 import Footer from './views/Footer.vue';
 
 export default {
@@ -22,10 +22,6 @@ export default {
 
 <style lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Aboreto&display=swap');
-
-header {
-  // margin-bottom: 60px;
-}
 
 #app {
   position:static;

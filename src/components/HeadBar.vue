@@ -12,13 +12,13 @@
                             <RouterLink class="nav-link" to="/listener">Listen</RouterLink>
                         </li>
                     </ul>
-                    <div v-if="auth" class="text-end">
-                        <button type="button" class="btn btn-outline-light me-2" @click="showLoginModal">Login</button>
-                        <button type="button" class="btn btn-outline-light me-2" @click="showSignUpModal">Sign Up</button>
+                    <div v-if="getUser" class="text-end">
+                        <button type="button" class="btn btn-outline-light me-2" @click="changeUserState">Logout</button>
                     </div>
 
                     <div v-else>
-                        <button type="button" class="btn btn-outline-light me-2" @click="changeUserState">Logout</button>
+                        <button type="button" class="btn btn-outline-light me-2" @click="showLoginModal">Login</button>
+                        <button type="button" class="btn btn-outline-light me-2" @click="showSignUpModal">Sign Up</button>
                     </div>
                 </div>
             </div>
@@ -32,7 +32,7 @@
 <script>
 
 import Modal from '@/components/AuthModal.vue';
-import { useStore } from 'vuex'
+// import { useStore } from 'vuex'
 import { mapActions, mapGetters } from 'vuex';
 
 export default {
@@ -40,10 +40,10 @@ export default {
     components: {
         Modal,
     },
-    store() {
-        const store = useStore()
-        console.log(store.state.user)
-    },
+    // store() {
+    //     const store = useStore()
+    //     console.log(store.state.user)
+    // },
     data() {
         return {
             isModalVisible: false,
@@ -52,12 +52,12 @@ export default {
         };
     },
     computed: {
-    ...mapGetters({
-      getUser: 'user/getUser'
-    })
-  },
-
+        ...mapGetters({
+            getUser: 'user/getUser'
+        }),
+    },
     created() {
+        this.auth = localStorage.getItem('user') !== null
         this.setUser(JSON.parse(localStorage.getItem('user')))
     },
 
@@ -82,14 +82,21 @@ export default {
         //     this.auth = false
         // },
         changeUserState() {
-            if (this.auth) {
-                if (this.isModalVisible)
-                    this.closeModal()
+            // if (this.auth) {
+            //     if (this.isModalVisible)
+            //         this.closeModal()
+            //     localStorage.setItem('auth', false)
+            //     this.auth = false
+            // } else {
+            //     localStorage.setItem('auth', true)
+            //     this.auth = true
+            // }
+            if (this.getUser) {
+                this.$api.auth.logout()
+                localStorage.removeItem('user')
+                this.deleteUser()
                 localStorage.setItem('auth', false)
                 this.auth = false
-            } else {
-                localStorage.setItem('auth', true)
-                this.auth = true
             }
         }
 
