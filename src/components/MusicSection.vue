@@ -10,10 +10,32 @@
             <img class="next" src="@/assets/icon3.png" @click="nextSong()" alt="Next ">
         </div>
     </div>
+
+    <div id="comments-section">
+        <h3>Comments</h3>
+        <div class="adding-com">
+            <form action="">
+                <input class="comment" type="text" placeholder="Write your comment...">
+                <button type="submit">Send</button>
+            </form>
+        </div>
+        <div class="coms">
+            <ul>
+                <li v-for="coms in comments" :key="coms">
+                    <span>{{ coms.name }}</span>
+                    <br>
+                    <p>
+                        {{ coms.comment }}
+                    </p>
+                </li>
+            </ul>
+        </div>
+    </div>
 </template>
 
 
 <script>
+import Songs from '../mocks/songs'
 
 export default {
     name: 'MusicSection',
@@ -24,21 +46,17 @@ export default {
             isPlay: false,
             current: {},
             index: 0,
-            songs: [
+            songs: Songs,
+            comments: [
                 {
-                    artist: 'Killswitch Engage',
-                    song: 'Arms of Sorrow (piano ver.)',
-                    src: require('@/assets/music/Killswitch engage - Arms of Sorrow(piano ver.).mp3')
+                    id: 1,
+                    name: 'Johny3',
+                    comment: 'Great song'
                 },
                 {
-                    artist: 'Killswitch Engage',
-                    song: 'My curse (piano ver.)',
-                    src: require('@/assets/music/Killswitch engage - My curse(piano ver.).mp3')
-                },
-                {
-                    artist: 'Killswitch Engage',
-                    song: 'Rose Of Sharyn (piano ver.)',
-                    src: require('@/assets/music/Killswitch Engage - Rose Of Sharyn (Piano Cover).mp3')
+                    id: 2,
+                    name: 'PotatoMan',
+                    comment: 'Not great song'
                 },
             ]
         }
@@ -49,7 +67,6 @@ export default {
     created() {
         this.current = this.songs[this.index]
         this.song.src = this.current.src
-
     },
     methods: {
         playSong() {
@@ -92,25 +109,62 @@ export default {
 #player {
     font-family: 'EB Garamond', serif;
     font-size: 20px;
-
     .play {
         cursor: pointer;
         margin: 20px;
     }
-
     .pause {
         cursor: pointer;
         margin: 20px;
     }
-
     .prev {
         cursor: pointer;
         margin: 20px;
     }
-
     .next {
         cursor: pointer;
         margin: 20px;
+    }
+}
+
+#comments-section {
+    // background: linear-gradient(#afafaf, transparent);
+    margin: 100px 0px;
+    .adding-com{
+        height: 50px;
+        input{
+            border: none;
+            outline: none;
+        }
+    }
+    h3 {
+        font-family: 'Aboreto', cursive;
+        font-size: 20px;
+        margin: 20px 0px;
+    }
+    form {
+        .comment {
+            border: none;
+            background-color: transparent;
+        }
+
+        button {
+            background-color: transparent;
+        }
+    }
+    .coms {
+        padding: 0px 250px;
+        text-align: justify;
+
+        li {
+            list-style: none;
+            margin: 10px;
+            margin-bottom: 30px;
+
+            span {
+                font-weight: 700;
+            }
+        }
     }
 }
 </style>
