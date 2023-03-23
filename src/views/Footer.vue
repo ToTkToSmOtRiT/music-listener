@@ -18,6 +18,7 @@
 footer {
     background-color: rgb(46, 46, 46);
     height: 300px;
+    margin: 200px 0px 0px 0px;
     padding: 60px;
 
     ul {

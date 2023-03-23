@@ -4,7 +4,7 @@
             "id": 0,
             "artist": "Killswitch Engage",
             "song": "Arms of Sorrow (piano ver.)",
-            "src": "@/assets/music/Killswitch engage - Arms of Sorrow(piano ver.).mp3",
+            "src": "music/Killswitch engage - Arms of Sorrow(piano ver.).mp3",
             "comments": [
                 {
                     "id": 1,
@@ -22,7 +22,7 @@
             "id": 1,
             "artist": "Killswitch Engage",
             "song": "My curse (piano ver.)",
-            "src": "@/assets/music/Killswitch engage - My curse(piano ver.).mp3",
+            "src": "music/Killswitch engage - My curse(piano ver.).mp3",
             "comments": [
                 {
                     "id": 1,
@@ -35,7 +35,7 @@
             "id": 2,
             "artist": "Killswitch Engage",
             "song": "Rose Of Sharyn (piano ver.)",
-            "src": "@/assets/music/Killswitch Engage - Rose Of Sharyn (Piano Cover).mp3",
+            "src": "music/Killswitch Engage - Rose Of Sharyn (Piano Cover).mp3",
             "comments": [
                 {
                     "id": 1,

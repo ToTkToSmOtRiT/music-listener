@@ -19,9 +19,9 @@
                 <button type="submit">Send</button>
             </form>
         </div>
-        <div class="coms">
+        <!-- <div class="coms">
             <ul>
-                <li v-for="coms in comments" :key="coms">
+                <li v-for="coms in current.comments" :key="coms">
                     <span>{{ coms.name }}</span>
                     <br>
                     <p>
@@ -29,44 +29,39 @@
                     </p>
                 </li>
             </ul>
-        </div>
+        </div> -->
     </div>
 </template>
 
 
 <script>
-import Songs from '../mocks/songs'
+// import {toRaw} from 'vue'
 
 export default {
     name: 'MusicSection',
     el: '#player',
     data() {
         return {
-            song: new Audio(),
+            song: undefined,
             isPlay: false,
             current: {},
             index: 0,
-            songs: Songs,
-            comments: [
+            songs: [
                 {
-                    id: 1,
-                    name: 'Johny3',
-                    comment: 'Great song'
-                },
-                {
-                    id: 2,
-                    name: 'PotatoMan',
-                    comment: 'Not great song'
-                },
-            ]
+                    "id": 0,
+                    "artist": "",
+                    "song": "",
+                    "src": "",
+                    "comments": []
+                }
+            ],
         }
     },
     components: {
 
     },
     created() {
-        this.current = this.songs[this.index]
-        this.song.src = this.current.src
+        this.getSongs()    
     },
     methods: {
         playSong() {
@@ -78,24 +73,37 @@ export default {
             this.isPlay = false
         },
         nextSong() {
-            if (this.songs.length-1 == this.index) {
+            if (this.songs.length - 1 == this.index) {
                 this.index = 0
                 this.current = this.songs[this.index]
             } else {
                 this.index = this.index + 1
                 this.current = this.songs[this.index]
             }
-            this.song.src = this.current.src
+            this.song.src = this.getUrl(this.current.src)
         },
         prevSong() {
             if (this.index == 0) {
-                this.index = this.songs.length-1
+                this.index = this.songs.length - 1
                 this.current = this.songs[this.index]
             } else {
                 this.index = this.index - 1
                 this.current = this.songs[this.index]
             }
-            this.song.src = this.current.src
+            this.song.src = this.getUrl(this.current.src)
+        },
+        getUrl(song){
+            return require('../assets/'+song)
+        },
+        async getSongs() {
+            try {
+                const data = (await this.$api.loader.loadSongs()).data
+                this.songs = data
+                this.current = this.songs[this.index]
+                this.song = new Audio(this.getUrl(this.current.src))
+            } catch (error) {
+                console.log(error)
+            }
         },
     }
 }
@@ -109,18 +117,22 @@ export default {
 #player {
     font-family: 'EB Garamond', serif;
     font-size: 20px;
+
     .play {
         cursor: pointer;
         margin: 20px;
     }
+
     .pause {
         cursor: pointer;
         margin: 20px;
     }
+
     .prev {
         cursor: pointer;
         margin: 20px;
     }
+
     .next {
         cursor: pointer;
         margin: 20px;
@@ -130,18 +142,22 @@ export default {
 #comments-section {
     // background: linear-gradient(#afafaf, transparent);
     margin: 100px 0px;
-    .adding-com{
+
+    .adding-com {
         height: 50px;
-        input{
+
+        input {
             border: none;
             outline: none;
         }
     }
+
     h3 {
         font-family: 'Aboreto', cursive;
         font-size: 20px;
         margin: 20px 0px;
     }
+
     form {
         .comment {
             border: none;
@@ -152,7 +168,9 @@ export default {
             background-color: transparent;
         }
     }
+
     .coms {
+        margin: 100px;
         padding: 0px 250px;
         text-align: justify;
 
