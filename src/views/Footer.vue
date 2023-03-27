@@ -16,6 +16,7 @@
 
 <style lang="scss">
 footer {
+    position: relative;
     background-color: rgb(46, 46, 46);
     height: 300px;
     margin: 200px 0px 0px 0px;

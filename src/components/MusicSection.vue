@@ -19,7 +19,7 @@
                 <button type="submit">Send</button>
             </form>
         </div>
-        <!-- <div class="coms">
+        <div class="coms">
             <ul>
                 <li v-for="coms in current.comments" :key="coms">
                     <span>{{ coms.name }}</span>
@@ -29,7 +29,7 @@
                     </p>
                 </li>
             </ul>
-        </div> -->
+        </div>
     </div>
 </template>
 
