@@ -8,16 +8,6 @@
     </div>
 </template>
 
-<script>
-import MusicSection from '@/components/MusicSection.vue';
-
-export default {
-    name: 'App',
-    components: {
-        MusicSection,
-    }
-}
-</script>
 
 <style>
 #music-section {
@@ -26,3 +16,5 @@ export default {
     height: auto;
 }
 </style>
+
+

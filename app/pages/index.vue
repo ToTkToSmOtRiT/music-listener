@@ -2,9 +2,9 @@
     <div>
         <div id="head-section" data-aos="fade">
             <!-- <transition name="fade" mode="out-in"> -->
-            <h1>Wellcome to the music listener app</h1>
+            <h1>Welcome to the music listener app</h1>
             <!-- </transition> -->
-            <RouterLink data-aos="fade" class="start-btn" to="/listener">Start Listening</RouterLink>
+            <NuxtLink data-aos="fade" class="start-btn" to="/listener">Start Listening</NuxtLink>
         </div>
         <div id="main-section">
             <h1 data-aos="fade" data-aos-duration="500">Main section</h1>
@@ -23,7 +23,7 @@
         <div id="genres">
             <h1 data-aos="fade" data-aos-duration="1500">Genres</h1>
             <table class="genres-list" data-aos="fade" data-aos-duration="2000">
-                <tr>
+                <tbody><tr>
                     <td>
                         <h3>Pop</h3>
                     </td>
@@ -44,7 +44,7 @@
                     <td>
                         <h3>Funk</h3>
                     </td>
-                </tr>
+                </tr></tbody>
             </table>
         </div>
     </div>
@@ -61,7 +61,7 @@
     height: 700px;
     // position: relative;
     padding-top: 150px;
-    background-image: url('@/assets/pxfuel.jpg');
+    background-image: url('~/assets/pxfuel.jpg');
     background-size: cover;
     h1 {
         text-shadow: 1px 1px 1px black;
@@ -123,3 +123,4 @@
     }
 }
 </style>
+
