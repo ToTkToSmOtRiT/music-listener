@@ -23,9 +23,7 @@
                 </div>
             </div>
         </nav>
-        <div>
-            <AuthModal v-show="isModalVisible" :mode="isLogin" @close="closeModal" />
-        </div>
+        <AuthModal :open="isModalVisible" :mode="isLogin" @close="closeModal" @switch="isLogin = !isLogin" />
     </div>
 </template>
 
@@ -64,9 +62,31 @@ header {
     width: 100%;
 }
 
-// #navbar {
-//     position: sticky;
-// }
+#navbar {
+    .navbar-collapse {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 12px;
+    }
+
+    .navbar-nav {
+        flex-direction: row;
+        gap: 4px;
+    }
+
+    @media (max-width: 480px) {
+        .navbar-collapse {
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 4px 10px;
+            font-size: 14px;
+            margin-right: 0 !important;
+        }
+    }
+}
 </style>
 
 

@@ -18,6 +18,18 @@
   text-align: center;
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
+}
+
 h1 {
   font-family: 'Aboreto', cursive;
   color: #9b7c27;

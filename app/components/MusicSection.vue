@@ -111,69 +111,75 @@ async function sendComment() {
 @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital@1&display=swap');
 
 #player {
+    padding: 0 16px;
     font-family: 'EB Garamond', serif;
-    font-size: 20px;
+    font-size: clamp(16px, 2.5vw, 20px);
 
-    .play {
-        cursor: pointer;
-        margin: 20px;
+    > img {
+        display: block;
+        width: 100%;
+        max-width: 348px;
+        height: auto;
+        margin: 0 auto;
     }
 
-    .pause {
-        cursor: pointer;
-        margin: 20px;
-    }
+    .buttons {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(16px, 5vw, 40px);
+        margin: 20px 0;
 
-    .prev {
-        cursor: pointer;
-        margin: 20px;
-    }
-
-    .next {
-        cursor: pointer;
-        margin: 20px;
+        img {
+            cursor: pointer;
+        }
     }
 }
 
 #comments-section {
-    // background: linear-gradient(#afafaf, transparent);
-    margin: 100px 0px;
-
-    .adding-com {
-        height: 50px;
-
-        input {
-            border: none;
-            outline: none;
-        }
-    }
+    max-width: 800px;
+    margin: clamp(40px, 8vw, 100px) auto;
+    padding: 0 16px;
 
     h3 {
         font-family: 'Aboreto', cursive;
         font-size: 20px;
-        margin: 20px 0px;
+        margin: 20px 0;
     }
 
     form {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 30px;
+
         .comment {
+            flex: 1;
+            min-width: 0;
+            padding: 6px 10px;
             border: none;
+            border-bottom: 1px solid #ccc;
+            outline: none;
             background-color: transparent;
         }
 
         button {
+            padding: 6px 14px;
+            border: 1px solid #999;
             background-color: transparent;
         }
     }
 
     .coms {
-        margin: 100px;
-        padding: 0px 250px;
-        text-align: justify;
+        ul {
+            margin: 0;
+            padding: 0;
+        }
 
         li {
             list-style: none;
-            margin: 10px;
             margin-bottom: 30px;
+            text-align: left;
+            overflow-wrap: anywhere;
 
             span {
                 font-weight: 700;

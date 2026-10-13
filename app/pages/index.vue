@@ -1,126 +1,128 @@
 <template>
     <div>
-        <div id="head-section" data-aos="fade">
-            <!-- <transition name="fade" mode="out-in"> -->
+        <section id="head-section" data-aos="fade">
             <h1>Welcome to the music listener app</h1>
-            <!-- </transition> -->
             <NuxtLink data-aos="fade" class="start-btn" to="/listener">Start Listening</NuxtLink>
-        </div>
-        <div id="main-section">
+        </section>
+        <section id="main-section">
             <h1 data-aos="fade" data-aos-duration="500">Main section</h1>
             <p data-aos="fade-up" data-aos-duration="1500">Lorem ipsum dolor sit amet consectetur, adipisicing elit.
                 Excepturi itaque temporibus eaque incidunt
                 veritatis laudantium repudiandae numquam voluptatem magnam harum.</p>
             <ul data-aos="fade-up" data-aos-duration="2000">
-                <li>Section 1 <p>Content for Section 1</p>
-                </li>
-                <li>Section 2 <p>Content for Section 2</p>
-                </li>
-                <li>Section 3 <p>Content for Section 3</p>
+                <li v-for="n in 3" :key="n">Section {{ n }} <p>Content for Section {{ n }}</p>
                 </li>
             </ul>
-        </div>
-        <div id="genres">
+        </section>
+        <section id="genres">
             <h1 data-aos="fade" data-aos-duration="1500">Genres</h1>
-            <table class="genres-list" data-aos="fade" data-aos-duration="2000">
-                <tbody><tr>
-                    <td>
-                        <h3>Pop</h3>
-                    </td>
-                    <td>
-                        <h3>Rock</h3>
-                    </td>
-                    <td>
-                        <h3>Rap</h3>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <h3>Jazz</h3>
-                    </td>
-                    <td>
-                        <h3>Folk</h3>
-                    </td>
-                    <td>
-                        <h3>Funk</h3>
-                    </td>
-                </tr></tbody>
-            </table>
-        </div>
+            <ul class="genres-list" data-aos="fade" data-aos-duration="2000">
+                <li v-for="genre in genres" :key="genre">
+                    <h3>{{ genre }}</h3>
+                </li>
+            </ul>
+        </section>
     </div>
 </template>
 
+<script setup>
+const genres = ['Pop', 'Rock', 'Rap', 'Jazz', 'Folk', 'Funk']
+</script>
 
 <style lang="scss">
-// [v-cloak]{
-//     display: none;
-// }
 #head-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(40px, 12vh, 140px);
+    min-height: clamp(420px, 80vh, 700px);
+    padding: 40px 16px;
     background-color: black;
-    opacity: 0.9;
-    height: 700px;
-    // position: relative;
-    padding-top: 150px;
     background-image: url('~/assets/pxfuel.jpg');
     background-size: cover;
+    background-position: center;
+
     h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 6vw, 3rem);
         text-shadow: 1px 1px 1px black;
     }
+
     .start-btn {
-        position: relative;
-        font-size: 20px;
-        top: 200px;
+        font-size: clamp(16px, 2.5vw, 20px);
         text-decoration-line: none;
         color: white;
-        padding: 10px;
+        padding: 10px 18px;
         border: 2px solid white;
-    }
-}
-#main-section {
-    height: 800px;
-    font-size: 100%;
-    padding: 50px;
-    margin: 50px 0px;
+        transition: background 0.2s, color 0.2s;
 
-    ul {
-        left: 50%;
-        margin: 20px 0px;
-        list-style: none;
-        display: flex;
-        justify-content: center;
-        flex-direction: row;
-
-        li {
-            margin: 10px 80px;
+        &:hover {
+            background: white;
+            color: black;
         }
     }
 }
-#genres {
-    height: 600px;
-    padding: 50px;
-    margin-bottom: 200px;
-    h1{
-        padding: 20px;
+
+#main-section {
+    max-width: 1100px;
+    margin: clamp(30px, 6vw, 50px) auto;
+    padding: clamp(24px, 5vw, 50px) 16px;
+
+    h1 {
+        font-size: clamp(1.6rem, 5vw, 2.4rem);
     }
+
+    ul {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px clamp(24px, 6vw, 100px);
+        margin: 20px 0;
+        padding: 0;
+        list-style: none;
+    }
+}
+
+#genres {
+    max-width: 700px;
+    margin: 0 auto clamp(60px, 10vw, 200px);
+    padding: clamp(24px, 5vw, 50px) 16px;
+
+    h1 {
+        padding: 20px 0;
+        font-size: clamp(1.6rem, 5vw, 2.4rem);
+    }
+
     .genres-list {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: clamp(10px, 2.5vw, 20px);
+        margin: 0;
+        padding: clamp(8px, 2vw, 14px);
+        list-style: none;
+        border: clamp(5px, 1.5vw, 10px) solid white;
         font-family: 'Aboreto', cursive;
         color: #79611f;
-        margin-left: auto;
-        margin-right: auto;
-        // margin-top: 83px;
-        // margin-bottom: 85px;
-        width: 500px;
-        height: 500px;
-        border: 10px solid white;
-        border-spacing: 20px;
-        tr {
-            td {
-                border: 10px solid white;
-                padding: 20px 90px;
-                background-color: rgb(190, 190, 190);
-            }
+
+        li {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: clamp(70px, 14vw, 120px);
+            background-color: rgb(190, 190, 190);
+        }
+
+        h3 {
+            margin: 0;
+            font-size: clamp(1rem, 3.5vw, 1.75rem);
+        }
+    }
+
+    @media (max-width: 420px) {
+        .genres-list {
+            grid-template-columns: repeat(2, 1fr);
         }
     }
 }
 </style>
-
