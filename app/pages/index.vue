@@ -1,121 +1,148 @@
 <template>
     <div>
         <section id="head-section" data-aos="fade">
-            <h1>Welcome to the music listener app</h1>
-            <NuxtLink data-aos="fade" class="start-btn" to="/listener">Start Listening</NuxtLink>
+            <p class="eyebrow">Listen &middot; Like &middot; Discuss</p>
+            <h1>Music, one track at a time</h1>
+            <p class="lead">Swipe through songs, save the ones you love and talk about every track.</p>
+            <NuxtLink class="btn btn--solid btn--lg" to="/listener">Start listening</NuxtLink>
         </section>
-        <section id="main-section">
-            <h1 data-aos="fade" data-aos-duration="500">Main section</h1>
-            <p data-aos="fade-up" data-aos-duration="1500">Lorem ipsum dolor sit amet consectetur, adipisicing elit.
-                Excepturi itaque temporibus eaque incidunt
-                veritatis laudantium repudiandae numquam voluptatem magnam harum.</p>
-            <ul data-aos="fade-up" data-aos-duration="2000">
-                <li v-for="n in 3" :key="n">Section {{ n }} <p>Content for Section {{ n }}</p>
-                </li>
-            </ul>
+
+        <section id="features">
+            <article v-for="(f, i) in features" :key="f.title" class="feature" data-aos="fade-up"
+                :data-aos-delay="i * 120">
+                <span class="feature__no">0{{ i + 1 }}</span>
+                <h3>{{ f.title }}</h3>
+                <p>{{ f.text }}</p>
+            </article>
         </section>
+
         <section id="genres">
-            <h1 data-aos="fade" data-aos-duration="1500">Genres</h1>
-            <ul class="genres-list" data-aos="fade" data-aos-duration="2000">
-                <li v-for="genre in genres" :key="genre">
-                    <h3>{{ genre }}</h3>
-                </li>
+            <h2 data-aos="fade">Genres</h2>
+            <ul class="genres-list" data-aos="fade" data-aos-duration="1200">
+                <li v-for="genre in genres" :key="genre">{{ genre }}</li>
             </ul>
         </section>
     </div>
 </template>
 
 <script setup>
+const features = [
+    { title: 'Swipe to discover', text: 'One track fills the screen. Swipe up for the next, down to go back.' },
+    { title: 'Talk about every track', text: 'Each song has its own comment section, so the conversation stays with the music.' },
+    { title: 'Keep what you love', text: 'Like tracks, save favourites and share a song with a single link.' },
+]
 const genres = ['Pop', 'Rock', 'Rap', 'Jazz', 'Folk', 'Funk']
 </script>
 
 <style lang="scss">
 #head-section {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: clamp(40px, 12vh, 140px);
-    min-height: clamp(420px, 80vh, 700px);
-    padding: 40px 16px;
-    background-color: black;
-    background-image: url('~/assets/pxfuel.jpg');
+    gap: 18px;
+    min-height: clamp(440px, 72vh, 680px);
+    padding: 48px 20px;
+    background-image: linear-gradient(var(--hero-shade), var(--hero-shade)), url('~/assets/pxfuel.jpg');
     background-size: cover;
     background-position: center;
 
-    h1 {
+    .eyebrow {
         margin: 0;
-        font-size: clamp(1.8rem, 6vw, 3rem);
-        text-shadow: 1px 1px 1px black;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--accent);
     }
 
-    .start-btn {
-        font-size: clamp(16px, 2.5vw, 20px);
-        text-decoration-line: none;
-        color: white;
-        padding: 10px 18px;
-        border: 2px solid white;
-        transition: background 0.2s, color 0.2s;
+    h1 {
+        max-width: 14ch;
+        font-size: clamp(2.6rem, 8vw, 5.2rem);
+    }
+
+    .lead {
+        max-width: 34em;
+        margin: 0 0 10px;
+        font-size: clamp(16px, 2.2vw, 19px);
+        color: color-mix(in srgb, var(--text) 85%, transparent);
+    }
+}
+
+#features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    max-width: 1060px;
+    margin: clamp(40px, 7vw, 90px) auto 0;
+    padding: 0 20px;
+
+    .feature {
+        padding: 28px 24px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--bg-elev);
+        text-align: left;
+        transition: border-color 0.2s, transform 0.2s;
 
         &:hover {
-            background: white;
-            color: black;
+            border-color: var(--line-strong);
+            transform: translateY(-3px);
+        }
+
+        &__no {
+            font-family: var(--font-display);
+            font-size: 30px;
+            color: var(--accent);
+        }
+
+        h3 {
+            margin: 6px 0 8px;
+            font-size: 26px;
+        }
+
+        p {
+            margin: 0;
+            font-size: 15px;
+            color: var(--text-2);
         }
     }
 }
 
-#main-section {
-    max-width: 1100px;
-    margin: clamp(30px, 6vw, 50px) auto;
-    padding: clamp(24px, 5vw, 50px) 16px;
-
-    h1 {
-        font-size: clamp(1.6rem, 5vw, 2.4rem);
-    }
-
-    ul {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px clamp(24px, 6vw, 100px);
-        margin: 20px 0;
-        padding: 0;
-        list-style: none;
-    }
-}
-
 #genres {
-    max-width: 700px;
-    margin: 0 auto clamp(60px, 10vw, 200px);
-    padding: clamp(24px, 5vw, 50px) 16px;
+    max-width: 760px;
+    margin: clamp(50px, 8vw, 100px) auto 0;
+    padding: 0 20px;
 
-    h1 {
-        padding: 20px 0;
-        font-size: clamp(1.6rem, 5vw, 2.4rem);
+    h2 {
+        margin-bottom: 24px;
+        font-size: clamp(2rem, 5vw, 2.8rem);
     }
 
     .genres-list {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: clamp(10px, 2.5vw, 20px);
-        margin: 0;
-        padding: clamp(8px, 2vw, 14px);
-        list-style: none;
-        border: clamp(5px, 1.5vw, 10px) solid white;
-        font-family: 'Aboreto', cursive;
-        color: #79611f;
+        gap: clamp(10px, 2vw, 16px);
 
         li {
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: clamp(70px, 14vw, 120px);
-            background-color: rgb(190, 190, 190);
-        }
+            min-height: clamp(70px, 12vw, 110px);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--bg-elev);
+            font-family: var(--font-display);
+            font-size: clamp(20px, 4vw, 28px);
+            font-weight: 600;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 
-        h3 {
-            margin: 0;
-            font-size: clamp(1rem, 3.5vw, 1.75rem);
+            &:hover {
+                border-color: var(--accent);
+                background: var(--bg-sunk);
+                color: var(--accent);
+            }
         }
     }
 

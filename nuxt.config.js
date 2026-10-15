@@ -1,20 +1,19 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: false },
-  css: ['aos/dist/aos.css'],
+  css: ['aos/dist/aos.css', '~/assets/css/theme.css'],
   app: {
     head: {
       title: 'Music listener',
       meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
       link: [
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
           rel: 'stylesheet',
-          href: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css',
-          integrity: 'sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD',
-          crossorigin: 'anonymous'
+          href: 'https://fonts.googleapis.com/css2?family=Aboreto&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500&display=swap'
         }
       ]
     }
   }
 })
-

@@ -5,9 +5,12 @@ export const useApi = () => ({
     signUp: (payload) => $fetch('/api/auth/sign_up', { method: 'POST', body: payload }),
     logout: () => $fetch('/api/auth/logout', { method: 'DELETE' })
   },
-  loader: {
-    loadSongs: () => $fetch('/api/songs'),
-    addComment: (songId, payload) =>
-      $fetch(`/api/songs/${songId}/comments`, { method: 'POST', body: payload })
+  collection: (type) => $fetch('/api/collection', { query: { type } }),
+  tracks: {
+    page: (query) => $fetch('/api/tracks', { query }),
+    byIds: (ids) => $fetch('/api/tracks', { query: { ids: ids.join(',') } }),
+    comments: (id) => $fetch(`/api/tracks/${id}/comments`),
+    addComment: (id, payload) => $fetch(`/api/tracks/${id}/comments`, { method: 'POST', body: payload }),
+    setFlag: (id, kind, on) => $fetch(`/api/tracks/${id}/${kind}`, { method: on ? 'POST' : 'DELETE' })
   }
 })

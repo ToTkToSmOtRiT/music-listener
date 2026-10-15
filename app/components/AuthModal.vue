@@ -139,8 +139,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss">
-$gold: #9b7c27;
-
 .auth-backdrop {
     position: fixed;
     inset: 0;
@@ -149,7 +147,7 @@ $gold: #9b7c27;
     align-items: center;
     justify-content: center;
     padding: 16px;
-    background: rgba(10, 10, 10, 0.65);
+    background: rgba(10, 10, 10, 0.55);
     backdrop-filter: blur(4px);
 }
 
@@ -158,9 +156,11 @@ $gold: #9b7c27;
     width: 100%;
     max-width: 400px;
     padding: 36px 32px 28px;
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--line-strong);
+    border-radius: 18px;
+    background: var(--bg-elev);
+    color: var(--text);
+    box-shadow: var(--shadow);
     text-align: left;
 
     .auth-close {
@@ -171,50 +171,49 @@ $gold: #9b7c27;
         background: none;
         font-size: 28px;
         line-height: 1;
-        color: #777;
+        color: var(--text-2);
         cursor: pointer;
 
         &:hover {
-            color: #111;
+            color: var(--text);
         }
     }
 
     .auth-title {
         margin: 0 0 4px;
-        font-family: 'Aboreto', cursive;
-        font-size: 26px;
+        font-size: 34px;
         text-align: center;
-        color: $gold;
     }
 
     .auth-subtitle {
         margin: 0 0 20px;
         text-align: center;
         font-size: 14px;
-        color: #666;
+        color: var(--text-2);
     }
 
     .auth-tabs {
         display: flex;
         margin-bottom: 20px;
         padding: 4px;
-        background: #efefef;
-        border-radius: 10px;
+        background: var(--bg-sunk);
+        border-radius: 999px;
 
         button {
             flex: 1;
             padding: 8px;
             border: 0;
-            border-radius: 8px;
+            border-radius: 999px;
             background: transparent;
-            font-weight: 600;
-            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-2);
             cursor: pointer;
-            transition: background 0.2s, color 0.2s;
+            transition: background-color 0.2s, color 0.2s;
 
             &.active {
-                background: #222;
-                color: #fff;
+                background: var(--ink);
+                color: var(--ink-contrast);
             }
         }
     }
@@ -226,31 +225,37 @@ $gold: #9b7c27;
             display: block;
             margin-bottom: 4px;
             font-size: 13px;
-            font-weight: 600;
-            color: #333;
+            font-weight: 500;
+            color: var(--text-2);
         }
 
         .optional {
             font-weight: 400;
-            color: #888;
+            color: var(--text-3);
         }
 
         input {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 15px;
+            padding: 11px 14px;
+            border: 1px solid var(--line-strong);
+            border-radius: 10px;
             outline: none;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 15px;
             transition: border-color 0.2s, box-shadow 0.2s;
 
+            &::placeholder {
+                color: var(--text-3);
+            }
+
             &:focus {
-                border-color: $gold;
-                box-shadow: 0 0 0 3px rgba($gold, 0.25);
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
             }
 
             &.invalid {
-                border-color: #c0392b;
+                border-color: var(--danger);
             }
         }
     }
@@ -265,12 +270,12 @@ $gold: #9b7c27;
         .auth-toggle {
             position: absolute;
             top: 50%;
-            right: 10px;
+            right: 12px;
             transform: translateY(-50%);
             border: 0;
             background: none;
             font-size: 13px;
-            color: $gold;
+            color: var(--accent);
             cursor: pointer;
         }
     }
@@ -279,31 +284,32 @@ $gold: #9b7c27;
         display: block;
         margin-top: 4px;
         font-size: 12px;
-        color: #c0392b;
+        color: var(--danger);
     }
 
     .auth-alert {
         margin: 0 0 12px;
-        padding: 8px 12px;
-        border-radius: 8px;
-        background: #fdecea;
+        padding: 9px 12px;
+        border: 1px solid var(--danger);
+        border-radius: 10px;
         font-size: 13px;
-        color: #a93226;
+        color: var(--danger);
     }
 
     .auth-submit {
         width: 100%;
-        padding: 11px;
+        padding: 12px;
         border: 0;
-        border-radius: 8px;
-        background: #222;
-        font-weight: 600;
-        color: #fff;
+        border-radius: 999px;
+        background: var(--ink);
+        font-weight: 500;
+        color: var(--ink-contrast);
         cursor: pointer;
-        transition: background 0.2s;
+        transition: background-color 0.2s, color 0.2s;
 
         &:hover:not(:disabled) {
-            background: $gold;
+            background: var(--accent);
+            color: var(--accent-ink);
         }
 
         &:disabled {
@@ -316,13 +322,13 @@ $gold: #9b7c27;
         margin: 16px 0 0;
         text-align: center;
         font-size: 14px;
-        color: #666;
+        color: var(--text-2);
 
         button {
             border: 0;
             background: none;
-            font-weight: 600;
-            color: $gold;
+            font-weight: 500;
+            color: var(--accent);
             cursor: pointer;
         }
     }

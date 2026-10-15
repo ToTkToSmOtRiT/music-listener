@@ -1,0 +1,198 @@
+/* Two themes share one set of variables. Ebony (dark) is the default; the
+   data-theme attribute on <html> switches to Ivory (light). */
+
+:root,
+:root[data-theme='ebony'] {
+    color-scheme: dark;
+
+    --bg: #121212;
+    --bg-elev: #1b1b1b;
+    --bg-sunk: #262626;
+    --text: #f2ede4;
+    --text-2: #9d968a;
+    --text-3: #7d776d;
+    --line: #2e2e2e;
+    --line-strong: #454545;
+
+    --accent: #d7b866;
+    --accent-ink: #121212;
+    --ink: #f2ede4;
+    --ink-contrast: #121212;
+    --progress: #d7b866;
+    --like: #ff6b81;
+    --danger: #ff8f84;
+
+    --glass: rgba(24, 24, 24, 0.62);
+    --glass-line: rgba(255, 255, 255, 0.14);
+    --shade-top: rgba(0, 0, 0, 0.35);
+    --shade-bottom: rgba(0, 0, 0, 0.7);
+    --hero-shade: rgba(18, 18, 18, 0.62);
+    --shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+
+    --fb-l1: 24%;
+    --fb-l2: 10%;
+    --tile-l1: 38%;
+    --tile-l2: 18%;
+    --tile-ink: rgba(255, 255, 255, 0.6);
+
+    --key-on: #f2ede4;
+    --key-off: #3a3a3a;
+    --key-black: #121212;
+}
+
+:root[data-theme='ivory'] {
+    color-scheme: light;
+
+    --bg: #faf7f2;
+    --bg-elev: #ffffff;
+    --bg-sunk: #efe9de;
+    --text: #1c1b19;
+    --text-2: #6b665d;
+    --text-3: #9a948a;
+    --line: #e3ddd2;
+    --line-strong: #cfc7b8;
+
+    --accent: #9a7b2f;
+    --accent-ink: #ffffff;
+    --ink: #1c1b19;
+    --ink-contrast: #faf7f2;
+    --progress: #1c1b19;
+    --like: #d6334f;
+    --danger: #b3261e;
+
+    --glass: rgba(255, 255, 255, 0.7);
+    --glass-line: rgba(28, 27, 25, 0.12);
+    --shade-top: rgba(250, 247, 242, 0.72);
+    --shade-bottom: rgba(250, 247, 242, 0.9);
+    --hero-shade: rgba(250, 247, 242, 0.7);
+    --shadow: 0 18px 44px rgba(60, 50, 30, 0.22);
+
+    --fb-l1: 80%;
+    --fb-l2: 92%;
+    --tile-l1: 72%;
+    --tile-l2: 52%;
+    --tile-ink: rgba(255, 255, 255, 0.85);
+
+    --key-on: #1c1b19;
+    --key-off: #e3ddd2;
+    --key-black: #1c1b19;
+}
+
+:root {
+    --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    overflow-x: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font: 400 16px/1.5 var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--text);
+}
+
+a {
+    color: inherit;
+}
+
+button {
+    font: inherit;
+    color: inherit;
+}
+
+img {
+    max-width: 100%;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Shared buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.btn--solid {
+    background: var(--ink);
+    color: var(--ink-contrast);
+}
+
+.btn--solid:hover {
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+.btn--ghost {
+    border-color: var(--line-strong);
+    background: transparent;
+    color: var(--text);
+}
+
+.btn--ghost:hover {
+    border-color: var(--text);
+}
+
+.btn--lg {
+    padding: 12px 28px;
+    font-size: 16px;
+}
+
+/* Generic content page (collection, coming-soon pages) */
+.page {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: clamp(24px, 5vw, 56px) clamp(16px, 4vw, 40px);
+    text-align: left;
+}
+
+.page__head {
+    margin-bottom: 24px;
+}
+
+.page__head h1 {
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+}
+
+.page__head p {
+    margin: 6px 0 0;
+    color: var(--text-2);
+}

@@ -1,37 +1,66 @@
 <template>
-  <div>
-    <header class="p-3 text-bg-dark">
-      <HeadBar />
-    </header>
-    <div id="main">
-      <NuxtPage />
+  <div class="app" :class="{ 'app--player': isPlayer }">
+    <AppSidebar />
+
+    <div class="app__content">
+      <div class="topbar">
+        <button type="button" aria-label="Open menu" aria-controls="sidebar" @click="openDrawer">
+          <AppIcon name="menu" />
+        </button>
+        <NuxtLink to="/">Music Listener</NuxtLink>
+      </div>
+
+      <div id="main">
+        <NuxtPage />
+      </div>
+      <AppFooter v-if="!isPlayer" />
     </div>
-    <AppFooter />
   </div>
 </template>
 
+<script setup>
+const route = useRoute()
+const theme = useTheme()
+const { openDrawer } = useSidebar()
+
+// The listening page is a full-screen feed: no page scroll, no footer.
+const isPlayer = computed(() => route.path === '/listener')
+
+useHead({
+  htmlAttrs: { 'data-theme': theme },
+  meta: [{ name: 'theme-color', content: () => (theme.value === 'ivory' ? '#faf7f2' : '#121212') }]
+})
+</script>
+
 <style lang="scss">
-@import url('https://fonts.googleapis.com/css2?family=Aboreto&display=swap');
-
-#__nuxt {
-  position: static;
+.app {
+  display: flex;
+  min-height: 100dvh;
   text-align: center;
-}
 
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+  &__content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+  }
 
-body {
-  overflow-x: hidden;
-}
+  #main {
+    flex: 1;
+  }
 
-img {
-  max-width: 100%;
-}
+  &--player {
+    height: 100dvh;
+    overflow: hidden;
 
-h1 {
-  font-family: 'Aboreto', cursive;
-  color: #9b7c27;
+    .app__content {
+      min-height: 0;
+    }
+
+    #main {
+      position: relative;
+      min-height: 0;
+    }
+  }
 }
 </style>
