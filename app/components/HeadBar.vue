@@ -33,8 +33,6 @@ const getUser = useUser()
 const isModalVisible = ref(false)
 const isLogin = ref(true)
 
-onMounted(loadStoredUser)
-
 function showLoginModal() {
     isLogin.value = true
     isModalVisible.value = true

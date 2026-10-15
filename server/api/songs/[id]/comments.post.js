@@ -1,14 +1,14 @@
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
-  const { name, comment } = body || {}
-  if (typeof comment !== 'string' || !comment.trim()) {
-    throw createError({ statusCode: 400, statusMessage: 'Comment is required' })
-  }
-  const added = await addComment(Number(getRouterParam(event, 'id')), {
-    name: typeof name === 'string' && name.trim() ? name.trim() : 'Anonymous',
-    comment: comment.trim()
-  })
-  if (!added) throw createError({ statusCode: 404, statusMessage: 'Song not found' })
-  setResponseStatus(event, 201)
-  return added
+    const user = requireUser(event)
+    const { comment } = (await readBody(event)) || {}
+    if (typeof comment !== 'string' || !comment.trim()) {
+        throw createError({ statusCode: 400, statusMessage: 'Comment is required' })
+    }
+    if (comment.length > 2000) {
+        throw createError({ statusCode: 400, statusMessage: 'Comment is too long (max 2000 characters)' })
+    }
+    const added = addComment(Number(getRouterParam(event, 'id')), user, comment.trim())
+    if (!added) throw createError({ statusCode: 404, statusMessage: 'Song not found' })
+    setResponseStatus(event, 201)
+    return added
 })

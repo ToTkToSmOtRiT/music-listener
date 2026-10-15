@@ -1,4 +1,5 @@
 export default defineEventHandler((event) => {
-  setResponseStatus(event, 200)
-  return null
+    destroySession(event)
+    setResponseStatus(event, 200)
+    return null
 })

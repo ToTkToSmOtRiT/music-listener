@@ -13,11 +13,11 @@
     <div id="comments-section">
         <h3>Comments</h3>
         <div class="adding-com">
-            <form @submit.prevent="sendComment">
+            <form v-if="user" @submit.prevent="sendComment">
                 <input class="comment" type="text" placeholder="Write your comment..." v-model="newComment">
                 <button type="submit">Send</button>
             </form>
-        </div>
+        <p v-if="!user" class="login-hint">Log in or sign up to join the conversation.</p></div>
         <div class="coms">
             <ul>
                 <li v-for="coms in current.comments" :key="coms.id">
@@ -95,7 +95,6 @@ async function sendComment() {
     if (!comment || current.value.id === undefined) return
     try {
         const added = await api.loader.addComment(current.value.id, {
-            name: user.value ? user.value.username || user.value.email : 'Anonymous',
             comment,
         })
         current.value.comments.push(added)
@@ -186,6 +185,12 @@ async function sendComment() {
             }
         }
     }
+}
+
+#comments-section .login-hint {
+    margin: 0;
+    font-size: 14px;
+    color: #777;
 }
 </style>
 

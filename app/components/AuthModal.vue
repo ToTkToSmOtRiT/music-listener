@@ -38,7 +38,7 @@
                                 <input id="auth-password" v-model="form.password"
                                     :type="showPassword ? 'text' : 'password'"
                                     :autocomplete="mode ? 'current-password' : 'new-password'"
-                                    placeholder="At least 6 characters" :class="{ invalid: errors.password }">
+                                    placeholder="At least 8 characters" :class="{ invalid: errors.password }">
                                 <button type="button" class="auth-toggle" @click="showPassword = !showPassword">
                                     {{ showPassword ? 'Hide' : 'Show' }}
                                 </button>
@@ -97,7 +97,7 @@ function switchMode() {
 }
 function validate() {
     errors.email = /^\S+@\S+\.\S+$/.test(form.email) ? '' : 'Enter a valid email address'
-    errors.password = form.password.length >= 6 ? '' : 'Password must be at least 6 characters'
+    errors.password = form.password.length >= 8 ? '' : 'Password must be at least 8 characters'
     return !errors.email && !errors.password
 }
 async function submit() {
