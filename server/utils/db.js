@@ -19,10 +19,26 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 
 CREATE TABLE IF NOT EXISTS tracks (
-    id     INTEGER PRIMARY KEY,
-    artist TEXT NOT NULL,
-    title  TEXT NOT NULL,
-    src    TEXT NOT NULL
+    id         INTEGER PRIMARY KEY,
+    artist     TEXT NOT NULL,
+    title      TEXT NOT NULL,
+    src        TEXT NOT NULL,
+    has_cover  INTEGER NOT NULL DEFAULT 0,
+    meta_done  INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS tracks_src ON tracks(src);
+
+CREATE TABLE IF NOT EXISTS likes (
+    user_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, track_id)
+);
+
+CREATE TABLE IF NOT EXISTS favourites (
+    user_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, track_id)
 );
 
 CREATE TABLE IF NOT EXISTS comments (
@@ -40,7 +56,7 @@ CREATE INDEX IF NOT EXISTS comments_track ON comments(track_id);
 // Import the original JSON songs/comments the first time the database is created.
 function seedIfEmpty(db) {
     if (db.prepare('SELECT COUNT(*) AS n FROM tracks').get().n > 0) return
-    const insertTrack = db.prepare('INSERT INTO tracks (id, artist, title, src) VALUES (?, ?, ?, ?)')
+    const insertTrack = db.prepare('INSERT INTO tracks (id, artist, title, src, meta_done) VALUES (?, ?, ?, ?, 1)')
     const insertComment = db.prepare('INSERT INTO comments (track_id, author_name, body) VALUES (?, ?, ?)')
     db.exec('BEGIN')
     try {
@@ -55,6 +71,12 @@ function seedIfEmpty(db) {
     }
 }
 
+// Databases created before a column existed get it added in place.
+function ensureColumn(db, table, column, definition) {
+    const has = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column)
+    if (!has) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`)
+}
+
 let db
 
 export function useDb() {
@@ -64,6 +86,8 @@ export function useDb() {
     const instance = new DatabaseSync(join(dir, 'app.db'))
     instance.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;')
     instance.exec(SCHEMA)
+    ensureColumn(instance, 'tracks', 'has_cover', 'INTEGER NOT NULL DEFAULT 0')
+    ensureColumn(instance, 'tracks', 'meta_done', 'INTEGER NOT NULL DEFAULT 0')
     seedIfEmpty(instance)
     db = instance
     return db
