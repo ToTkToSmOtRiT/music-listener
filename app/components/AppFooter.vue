@@ -16,22 +16,24 @@
 
 <style lang="scss">
 footer {
-    position: relative;
     background-color: rgb(46, 46, 46);
-    height: 300px;
-    margin: 200px 0px 0px 0px;
-    padding: 60px;
+    margin-top: clamp(60px, 10vw, 200px);
+    padding: clamp(30px, 6vw, 60px) 16px;
 
     ul {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px clamp(24px, 8vw, 100px);
+        margin: 0;
+        padding: 0;
+        list-style: none;
         font-family: 'Aboreto', cursive;
         color: white;
-        left: 50%;
-        list-style: none;
-        display: flex;
-        flex-direction: row;
 
         li {
-            margin: 10px 80px;
+            margin: 10px 0;
         }
     }
-}</style>
+}
+</style>
