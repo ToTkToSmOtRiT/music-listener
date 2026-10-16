@@ -6,7 +6,9 @@
             <li><a href="#">Help</a></li>
             <li><a href="#">Privacy</a></li>
         </ul>
-        <small>Made for people who love to listen and to talk about it.</small>
+        <small>
+            &copy; 2026 ToTkToSmOtRiT
+        </small>
     </footer>
 </template>
 

@@ -15,8 +15,41 @@
             <nav class="sidebar__nav">
                 <ul>
                     <li v-for="item in items" :key="item.to">
-                        <NuxtLink :to="item.to" class="sidebar__link" exact-active-class="is-active" active-class="is-active"
-                            :title="collapsed ? item.label : undefined">
+                        <!-- Playlists: a button that drops its lists out right here in the menu -->
+                        <template v-if="item.drop">
+                            <button type="button" class="sidebar__link sidebar__link--btn"
+                                :class="{ 'is-active': route.path.startsWith('/playlists') }" aria-controls="sidebar-lists"
+                                :aria-expanded="listsOpen" :title="collapsed ? item.label : undefined" @click="toggleLists">
+                                <AppIcon :name="item.icon" />
+                                <span class="sidebar__label">{{ item.label }}</span>
+                                <AppIcon name="down" :size="16" class="sidebar__chev sidebar__label"
+                                    :class="{ 'is-open': listsOpen }" />
+                            </button>
+                            <ul v-if="listsOpen && showFull" id="sidebar-lists" class="sidebar__sub">
+                                <li v-for="s in special" :key="s.key">
+                                    <NuxtLink :to="`/playlists/${s.key}`" class="sidebar__sublink sidebar__sublink--pinned"
+                                        exact-active-class="is-active">
+                                        <AppIcon :name="s.key === 'saved' ? 'star' : 'heart'" :size="16" />
+                                        <span>{{ s.name }}</span><small>{{ s.count }}</small>
+                                    </NuxtLink>
+                                </li>
+                                <li v-for="p in lists" :key="p.id">
+                                    <NuxtLink :to="`/playlists/${p.id}`" class="sidebar__sublink" exact-active-class="is-active">
+                                        <AppIcon name="playlist" :size="16" />
+                                        <span>{{ p.name }}</span><small>{{ p.count }}</small>
+                                    </NuxtLink>
+                                </li>
+                                <li>
+                                    <NuxtLink to="/playlists" class="sidebar__sublink sidebar__sublink--all"
+                                        exact-active-class="is-active">
+                                        <AppIcon name="plus" :size="16" />
+                                        <span>All playlists / new</span>
+                                    </NuxtLink>
+                                </li>
+                            </ul>
+                        </template>
+                        <NuxtLink v-else :to="item.to" class="sidebar__link" exact-active-class="is-active"
+                            active-class="is-active" :title="collapsed ? item.label : undefined">
                             <AppIcon :name="item.icon" />
                             <span class="sidebar__label">{{ item.label }}</span>
                             <span v-if="item.soon" class="sidebar__soon sidebar__label">Soon</span>
@@ -47,7 +80,6 @@
 </template>
 
 <script setup>
-const api = useApi()
 const user = useUser()
 const theme = useTheme()
 const route = useRoute()
@@ -58,10 +90,44 @@ const items = [
     { to: '/news', label: 'News', icon: 'news', soon: true },
     { to: '/listener', label: 'Listen', icon: 'listen' },
     { to: '/library', label: 'Library', icon: 'library' },
-    { to: '/collection', label: 'My collection', icon: 'collection' },
+    { to: '/profile', label: 'Profile', icon: 'user' },
     { to: '/subscriptions', label: 'Subscriptions', icon: 'subscriptions', soon: true },
-    { to: '/playlists', label: 'Playlists', icon: 'playlist' },
+    { to: '/playlists', label: 'Playlists', icon: 'playlist', drop: true },
 ]
+
+// Playlists drop-out: Saved and Liked pinned on top, then the user's own playlists.
+const api = useApi()
+const listsOpen = ref(false)
+const special = ref([])
+const lists = ref([])
+// the rail is icons only; the list needs the full menu (always full inside the phone drawer)
+const showFull = computed(() => !collapsed.value || open.value)
+
+async function loadLists() {
+  if (!user.value) return
+  try {
+    const [pinned, own] = await Promise.all([api.playlists.special(), api.playlists.list()])
+    special.value = pinned
+    lists.value = own
+  } catch (error) {
+    // keep the previous list; the full page shows errors
+  }
+}
+
+function toggleLists() {
+  // from the collapsed rail, a click unfolds the menu and shows the lists
+  if (collapsed.value && !open.value) {
+    toggleCollapsed()
+    listsOpen.value = true
+  } else {
+    listsOpen.value = !listsOpen.value
+  }
+  if (listsOpen.value) loadLists()
+}
+
+// counts and names change while listening and editing: refresh on navigation while it is open
+watch(() => route.fullPath, () => { if (listsOpen.value) loadLists() })
+watch(user, (u) => { if (!u) { listsOpen.value = false; special.value = []; lists.value = [] } })
 
 // The button folds the menu on desktop and closes the drawer on phones.
 function onToggle() {
@@ -71,19 +137,7 @@ function onToggle() {
 
 watch(() => route.path, closeDrawer)
 
-// Logging out leads to the home page. The user is cleared first: the route guard would otherwise
-// still see a logged-in user and send "/" straight back to the start page.
-async function logout() {
-    if (!user.value) return
-    clearUser()
-    const done = navigateTo('/', { replace: true })
-    try {
-        await api.auth.logout()
-    } catch (error) {
-        console.error('Logout request failed', error.message)
-    }
-    await done
-}
+const logout = useLogout()
 </script>
 
 <style lang="scss">
@@ -188,6 +242,70 @@ async function logout() {
             background: var(--bg-sunk);
             color: var(--text);
             box-shadow: inset 3px 0 0 var(--accent);
+        }
+    }
+
+    &__chev {
+        margin-left: auto;
+        transition: transform 0.2s;
+
+        &.is-open {
+            transform: rotate(180deg);
+        }
+    }
+
+    /* the drop-out list under Playlists */
+    &__sub {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        max-height: 40dvh;
+        margin: 2px 0 6px 22px;
+        padding-left: 10px;
+        overflow-y: auto;
+        border-left: 1px solid var(--line-strong);
+    }
+
+    &__sublink {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 36px;
+        padding: 0 10px;
+        border-radius: 10px;
+        font-size: 14px;
+        text-decoration: none;
+        color: var(--text-2);
+        transition: background-color 0.2s, color 0.2s;
+
+        .icon {
+            flex: none;
+        }
+
+        span {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        small {
+            font-size: 12px;
+            color: var(--text-3);
+        }
+
+        &:hover,
+        &.is-active {
+            background: var(--bg-sunk);
+            color: var(--text);
+        }
+
+        &--pinned .icon {
+            color: var(--accent);
+        }
+
+        &--all {
+            color: var(--text-3);
         }
     }
 

@@ -22,11 +22,18 @@
 
             <p v-if="status === 'loading'" class="plists__note">Loading…</p>
             <p v-else-if="status === 'error'" class="plists__note">Could not load your playlists.</p>
-            <p v-else-if="!lists.length" class="plists__note">
-                No playlists yet. Create one above, or use the Playlist button on the listening page.
-            </p>
 
             <ul v-else class="plists__grid">
+                <!-- Saved and Liked are pinned on top of the user's own playlists -->
+                <li v-for="s in special" :key="s.key">
+                    <NuxtLink :to="`/playlists/${s.key}`" class="plist plist--pinned">
+                        <span class="plist__art plist__art--pinned">
+                            <AppIcon :name="s.key === 'saved' ? 'star' : 'heart'" :size="44" />
+                        </span>
+                        <strong>{{ s.name }}</strong>
+                        <small>{{ s.count }} {{ s.count === 1 ? 'track' : 'tracks' }}</small>
+                    </NuxtLink>
+                </li>
                 <li v-for="p in lists" :key="p.id">
                     <NuxtLink :to="`/playlists/${p.id}`" class="plist">
                         <span class="plist__art" :style="p.coverTrackId ? null : tileStyle(p.id)">
@@ -38,6 +45,9 @@
                     </NuxtLink>
                 </li>
             </ul>
+            <p v-if="status === 'ready' && !lists.length" class="plists__note">
+                You have no playlists of your own yet. Create one above, or use the Playlist button on the listening page.
+            </p>
         </template>
     </section>
 </template>
@@ -49,6 +59,7 @@ const router = useRouter()
 useHead({ title: 'Playlists - Music listener' })
 
 const lists = ref([])
+const special = ref([]) // Saved and Liked
 const status = ref('loading')
 const newName = ref('')
 const creating = ref(false)
@@ -58,7 +69,9 @@ async function load() {
     if (!user.value) return
     status.value = 'loading'
     try {
-        lists.value = await api.playlists.list()
+        const [own, pinned] = await Promise.all([api.playlists.list(), api.playlists.special()])
+        lists.value = own
+        special.value = pinned
         status.value = 'ready'
     } catch (e) {
         status.value = 'error'
@@ -172,6 +185,12 @@ watch(user, load)
     &:hover &__art {
         transform: translateY(-3px);
         box-shadow: var(--shadow);
+    }
+
+    // Saved and Liked: the same card, in gold, so they read as the built-in lists
+    &__art--pinned {
+        border: 1px solid var(--accent);
+        color: var(--accent);
     }
 
     strong {

@@ -16,6 +16,8 @@
         <NuxtPage />
       </div>
       <AppFooter v-if="!isPlayer" />
+      <!-- music goes on while you browse: the Listen page has the full player, the others this one -->
+      <MiniPlayer v-if="user && !isPlayer" />
     </div>
 
     <AuthModal :open="modal.open" :mode="modal.login" :reason="modal.reason" @close="modal.open = false"

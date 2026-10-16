@@ -41,6 +41,15 @@
                     </div>
 
                     <div class="controls">
+                        <!-- Shuffle only means something inside a list; in the feeds (random already) it is
+                             shown but cannot be pressed, so the buttons stay in place -->
+                        <button type="button" class="controls__mode" :class="{ on: shuffle && isList }"
+                            :disabled="!isList" :aria-pressed="shuffle && isList"
+                            :title="isList ? (shuffle ? 'Shuffle: on' : 'Shuffle: off') : 'Shuffle works inside a playlist'"
+                            aria-label="Shuffle" @click="toggleShuffle">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5" /></svg>
+                        </button>
                         <button type="button" aria-label="Previous track" @click="go(-1)">
                             <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
                         </button>
@@ -51,6 +60,13 @@
                         </button>
                         <button type="button" aria-label="Next track" @click="go(1)">
                             <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z" /></svg>
+                        </button>
+                        <!-- Repeat: off, the whole list (playlist), or this one song -->
+                        <button type="button" class="controls__mode" :class="{ on: repeat !== 'off' }"
+                            :title="repeatLabel" :aria-label="repeatLabel" @click="cycleRepeat">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 01-3 3H3" /></svg>
+                            <b v-if="repeat === 'one'" class="controls__one">1</b>
                         </button>
                     </div>
                 </div>
@@ -75,10 +91,14 @@
                             stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.4 6.3 20.5l1.2-6.4L2.8 9.7l6.4-.8z" /></svg>
                         <span>Save</span>
                     </button>
-                    <button type="button" class="rail__btn" aria-label="Add to playlist" @click="openPicker">
-                        <AppIcon name="list-add" :size="26" />
-                        <span>Playlist</span>
-                    </button>
+                    <div class="rail__menu">
+                        <button type="button" class="rail__btn" :class="{ open: menuOpen }" aria-label="Add to a list"
+                            aria-haspopup="dialog" :aria-expanded="menuOpen" data-pmenu-toggle @click="toggleMenu">
+                            <AppIcon name="list-add" :size="26" />
+                            <span>Playlist</span>
+                        </button>
+                        <PlaylistMenu :open="menuOpen" :track-id="current.id" @close="menuOpen = false" @flag="onFlag" />
+                    </div>
                     <button type="button" class="rail__btn" aria-label="Share" @click="share">
                         <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v14" /></svg>
@@ -100,8 +120,6 @@
                 :open="commentsOpen" @close="commentsOpen = false" @added="current.comments += 1" />
         </div>
 
-        <PlaylistPicker :open="pickerOpen" :track-id="current?.id ?? null" @close="pickerOpen = false" />
-
         <div v-if="commentsOpen" class="feed__dim" @click="commentsOpen = false" />
         <p v-if="toast" class="feed__toast" role="status">{{ toast }}</p>
     </section>
@@ -113,20 +131,20 @@ const user = useUser()
 const route = useRoute()
 const router = useRouter()
 
-const tracks = ref([])
-const index = ref(0)
+// The audio, the queue, shuffle and repeat live in the shared player, so the music goes on (and the mini
+// player takes over) when you leave this page. This page decides which tracks are in the queue.
+const player = usePlayer()
+const {
+    tracks, index, current, direction, isPlaying, currentTime, duration, volume, muted,
+    isList, shuffle, repeat, repeatLabel, toggleShuffle, cycleRepeat, togglePlay
+} = player
+
 const status = ref('loading') // loading | ready | empty | error
-const direction = ref('next')
-const isPlaying = ref(false)
-const currentTime = ref(0)
-const duration = ref(0)
-const volume = ref(1)
-const muted = ref(false)
 const commentsOpen = ref(false)
 const toast = ref('')
 const hint = ref(true)
 const panel = ref(null)
-const pickerOpen = ref(false)
+const menuOpen = ref(false) // the dropdown behind the Playlist button
 const sourceLabel = ref('') // e.g. "Saved" or a playlist name; empty for the shuffled feed
 const genreLabel = ref('') // set when the shuffled feed is limited to one genre (from the Library)
 
@@ -137,7 +155,6 @@ const learning = ref(false) // true while it has seen too few plays to personali
 const plainFeed = ref(false) // the Listen tab itself, as opposed to a list or a genre
 let feedKind = 'random' // what the current feed was loaded as: 'foryou' or 'random'
 
-const current = computed(() => tracks.value[index.value] ?? null)
 const coverUrl = computed(() => (current.value?.hasCover ? `/api/tracks/${current.value.id}/cover` : ''))
 // Same hue as the CoverBackdrop gradient, so the tile and the background match.
 const placeholderStyle = computed(() => {
@@ -178,9 +195,15 @@ async function loadMore() {
         }
         const known = new Set(tracks.value.map((t) => t.id))
         tracks.value.push(...res.items.filter((t) => !known.has(t.id)))
+        saveMeta()
     } finally {
         loadingMore = false
     }
+}
+
+// What the next visit to this page needs to carry on with the same feed.
+function saveMeta() {
+    player.meta.value = { seed, offset, total, feedKind, genreLabel: genreLabel.value }
 }
 
 // '' = the shuffled feed (the Listen tab); otherwise 'saved', 'liked', 'playlist:ID' or 'artist:name',
@@ -221,16 +244,33 @@ async function loadSettings() {
 // The settings window turned "For you" on or off, or reset the profile. The track playing right now is
 // not reported: after a reset nothing about the old listening should be written back.
 async function onSettingsChanged() {
-    play = null
+    player.discardPlay()
     await loadSettings()
     init()
 }
 
 // fresh: ignore ?track= in the address (see setMode) and start with whatever the feed picks
 async function init({ fresh = false } = {}) {
-    flushPlay() // report the track being left
     source = querySource()
     genre = queryGenre()
+    const wanted = Number(route.query.track)
+    const hasWanted = !fresh && Boolean(route.query.track) && Number.isInteger(wanted)
+
+    // Coming back to the page while the same feed or list is playing: carry on, do not start over.
+    const kindNow = !genre && mode.value === 'foryou' && foryouOn.value ? 'foryou' : 'random'
+    const wantedKey = source || (genre ? `genre:${genre}` : `feed:${kindNow}`)
+    const held = player.meta.value
+    if (!fresh && player.key.value === wantedKey && tracks.value.length && held
+        && (!hasWanted || wanted === current.value?.id)) {
+        ;({ seed, offset, total, feedKind } = held)
+        genreLabel.value = held.genreLabel ?? ''
+        sourceLabel.value = source ? player.label.value : ''
+        plainFeed.value = !source && !genre
+        status.value = 'ready'
+        syncAddress()
+        return
+    }
+
     sourceLabel.value = ''
     genreLabel.value = ''
     seed = Math.floor(Math.random() * 1e9) + 1
@@ -239,10 +279,9 @@ async function init({ fresh = false } = {}) {
     tracks.value = []
     index.value = 0
     status.value = 'loading'
+    let start = 0
+    let name = ''
     try {
-        const wanted = Number(route.query.track)
-        const hasWanted = !fresh && Boolean(route.query.track) && Number.isInteger(wanted)
-
         if (source) {
             try {
                 // Lists are small, so the whole list is loaded and the player starts at the chosen track.
@@ -250,10 +289,11 @@ async function init({ fresh = false } = {}) {
                 tracks.value = res.items
                 total = res.total
                 offset = res.total
+                name = res.label
                 sourceLabel.value = res.label
                 const at = hasWanted ? res.items.findIndex((t) => t.id === wanted) : -1
-                index.value = at >= 0 ? at : 0
-                wantPlay.value = true // opened from a list: keep playing through it
+                start = at >= 0 ? at : 0
+                player.wantPlay.value = true // opened from a list: keep playing through it
             } catch (error) {
                 const code = error.statusCode ?? error.status
                 showToast(code === 401 ? 'Log in to play your lists' : 'That list is not available')
@@ -283,7 +323,11 @@ async function init({ fresh = false } = {}) {
             plainFeed.value = false
             feedKind = 'random'
         }
-        status.value = tracks.value.length ? 'ready' : 'empty'
+        const items = tracks.value
+        const id = source || (genre ? `genre:${genre}` : `feed:${feedKind}`)
+        player.setQueue(items, { start, list: Boolean(source), id, name })
+        saveMeta()
+        status.value = items.length ? 'ready' : 'empty'
     } catch (error) {
         status.value = 'error'
     }
@@ -295,139 +339,41 @@ watch(() => [route.query.source, route.query.genre], () => {
     if (querySource() !== source || queryGenre() !== genre) init()
 })
 
+// The address holds the playing track, so the link can be shared and the page reloaded.
+function syncAddress() {
+    const id = current.value?.id
+    if (id == null) return
+    const query = { ...route.query, track: id }
+    if (!source) delete query.source
+    if (!genre || source) delete query.genre
+    router.replace({ query })
+}
+
 function go(step) {
-    const n = tracks.value.length
-    if (!n) return
-    let next = index.value + step
-    if (next < 0) return showToast('This is where your feed starts')
-    if (next >= n) next = 0 // end of the feed or list: start over
-    flushPlay() // report the track being left: heard to the end, or skipped
-    direction.value = step > 0 ? 'next' : 'prev'
-    index.value = next
+    if (!tracks.value.length) return
+    menuOpen.value = false
     hint.value = false
-    if (next >= n - 3) loadMore()
+    player.go(step)
 }
 
-// --- audio ----------------------------------------------------------------
+watch(() => current.value?.id, (id) => {
+    if (id == null) return
+    syncAddress()
+    const upcoming = tracks.value[index.value + 1]
+    if (upcoming?.hasCover) new Image().src = `/api/tracks/${upcoming.id}/cover` // warm the next background
+})
 
-let audio = null
-let failures = 0
-const wantPlay = ref(false) // once the user has pressed play, later tracks start by themselves
-
-function ensureAudio() {
-    if (audio) return audio
-    const a = new Audio()
-    a.preload = 'auto'
-    audio = a
-    // Handlers use their own element and ignore it once it has been discarded:
-    // tearing down the player makes the element fire a few late events.
-    const live = (fn) => () => { if (audio === a) fn() }
-    a.addEventListener('timeupdate', live(() => {
-        currentTime.value = a.currentTime
-        if (play) play.listened = Math.max(play.listened, a.currentTime)
-    }))
-    a.addEventListener('durationchange', live(() => {
-        duration.value = Number.isFinite(a.duration) ? a.duration : 0
-        if (play) play.duration = duration.value
-    }))
-    a.addEventListener('play', live(() => { isPlaying.value = true }))
-    a.addEventListener('pause', live(() => { isPlaying.value = false }))
-    a.addEventListener('playing', live(() => {
-        failures = 0
-        if (play) play.started = true // only tracks that really began playing are reported
-    }))
-    a.addEventListener('ended', live(() => go(1)))
-    a.addEventListener('error', live(() => {
-        if (!a.getAttribute('src')) return
-        showToast('Could not play this track')
-        if (wantPlay.value && ++failures < 3) setTimeout(() => { if (audio === a) go(1) }, 900)
-    }))
-    applyVolume()
-    return a
-}
-
-// What "For you" learns from: for each track, how long it was heard out of how long it is.
-// A play is reported when the player moves on (next track, new feed, leaving the page).
-let play = null // { id, started, listened, duration }
-
-function flushPlay(useBeacon = false) {
-    const p = play
-    play = null
-    if (!p || !p.started || !p.duration) return
-    const body = JSON.stringify({
-        trackId: p.id,
-        listened: Math.round(p.listened * 10) / 10,
-        duration: Math.round(p.duration * 10) / 10
-    })
-    if (useBeacon && navigator.sendBeacon) {
-        navigator.sendBeacon('/api/plays', new Blob([body], { type: 'application/json' }))
-    } else {
-        fetch('/api/plays', { method: 'POST', headers: { 'content-type': 'application/json' }, body, keepalive: true })
-            .catch(() => { /* a lost report only means a little less learned */ })
-    }
-}
-
-function loadAudio(autoplay) {
-    const a = ensureAudio()
-    play = { id: current.value.id, started: false, listened: 0, duration: 0 }
-    a.src = `/api/tracks/${current.value.id}/audio`
-    currentTime.value = 0
-    duration.value = 0
-    if (autoplay) a.play().catch(() => {})
-}
-
-function togglePlay() {
-    const a = ensureAudio()
-    if (!a.src && current.value) loadAudio(false)
-    if (a.paused) {
-        wantPlay.value = true
-        a.play().catch(() => showToast('Press play to start'))
-    } else {
-        wantPlay.value = false
-        a.pause()
-    }
-}
+// Short messages from the player (shuffle on, end of the list...)
+watch(() => player.notice.value.n, () => showToast(player.notice.value.text))
 
 function seek(event) {
-    if (audio) audio.currentTime = Number(event.target.value)
+    player.seek(Number(event.target.value))
 }
-
-function applyVolume() {
-    if (audio) audio.volume = muted.value ? 0 : volume.value
-}
-watch([volume, muted], () => {
-    applyVolume()
-    try {
-        localStorage.setItem('player', JSON.stringify({ volume: volume.value, muted: muted.value }))
-    } catch (error) { /* storage unavailable */ }
-})
 
 function fmt(seconds) {
     const s = Math.max(0, Math.floor(seconds || 0))
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }
-
-function updateMediaSession() {
-    if (!('mediaSession' in navigator) || !current.value) return
-    const t = current.value
-    navigator.mediaSession.metadata = new MediaMetadata({
-        title: t.title,
-        artist: t.artist,
-        artwork: coverUrl.value ? [{ src: coverUrl.value }] : []
-    })
-}
-
-watch(() => current.value?.id, (id) => {
-    if (id == null) return
-    loadAudio(wantPlay.value)
-    updateMediaSession()
-    const query = { ...route.query, track: id }
-    if (!source) delete query.source
-    if (!genre || source) delete query.genre
-    router.replace({ query })
-    const upcoming = tracks.value[index.value + 1]
-    if (upcoming?.hasCover) new Image().src = `/api/tracks/${upcoming.id}/cover` // warm the next background
-})
 
 function onCoverError() {
     if (current.value) current.value.hasCover = false
@@ -440,7 +386,7 @@ let startX = 0
 let startY = 0
 
 function onDown(event) {
-    if (event.target.closest('button, input, a, .vol')) return
+    if (event.target.closest('button, input, a, .vol, .pmenu')) return
     tracking = true
     startX = event.clientX
     startY = event.clientY
@@ -456,6 +402,7 @@ function onUp(event) {
 
 let wheelLock = 0
 function onWheel(event) {
+    if (event.target.closest?.('.pmenu')) return // scrolling the dropdown must not change the track
     event.preventDefault()
     const now = Date.now()
     if (now < wheelLock || Math.abs(event.deltaY) < 20) return
@@ -464,7 +411,7 @@ function onWheel(event) {
 }
 
 function onKey(event) {
-    if (pickerOpen.value) return
+    if (menuOpen.value) return // the dropdown has the keyboard (Escape closes it)
     const el = event.target instanceof Element ? event.target : document.body
     if (el.closest('input, textarea, [contenteditable]') || event.ctrlKey || event.metaKey || event.altKey) return
     const keys = { ArrowDown: () => go(1), j: () => go(1), ArrowUp: () => go(-1), k: () => go(-1), m: () => { muted.value = !muted.value } }
@@ -513,9 +460,21 @@ async function share() {
     }
 }
 
-function openPicker() {
+function toggleMenu() {
     if (!user.value) return openAuth(true)
-    pickerOpen.value = true
+    menuOpen.value = !menuOpen.value
+}
+
+// Ticking Saved or Liked in the dropdown keeps the heart and star buttons in step.
+function onFlag({ kind, on }) {
+    const t = current.value
+    if (!t) return
+    if (kind === 'like') {
+        t.likes += on === t.liked ? 0 : on ? 1 : -1
+        t.liked = on
+    } else {
+        t.favourited = on
+    }
 }
 
 async function openComments() {
@@ -546,45 +505,20 @@ watch(user, async () => {
 
 onMounted(() => {
     try {
-        const saved = JSON.parse(localStorage.getItem('player') || '{}')
-        if (typeof saved.volume === 'number') volume.value = Math.min(Math.max(saved.volume, 0), 1)
-        muted.value = Boolean(saved.muted)
-    } catch (error) { /* storage unavailable */ }
-
-    if ('mediaSession' in navigator) {
-        const set = (action, fn) => { try { navigator.mediaSession.setActionHandler(action, fn) } catch (e) { /* unsupported */ } }
-        set('nexttrack', () => go(1))
-        set('previoustrack', () => go(-1))
-        set('play', () => togglePlay())
-        set('pause', () => togglePlay())
-    }
-    try {
         const savedMode = localStorage.getItem('listenMode')
         if (savedMode === 'foryou' || savedMode === 'random') mode.value = savedMode
     } catch (error) { /* storage unavailable */ }
 
+    player.onNearEnd(loadMore) // the shared player asks this page for more tracks
     window.addEventListener('keydown', onKey)
-    window.addEventListener('pagehide', onPageHide)
     loadSettings().then(() => init()) // know whether "For you" is on before the first feed is loaded
 })
 
-// Closing the tab or reloading: send the last play before the page goes away.
-function onPageHide() {
-    flushPlay(true)
-}
-
 onBeforeUnmount(() => {
-    flushPlay(true) // leaving the Listen tab: report the track that was playing
+    // The music keeps playing: the mini player takes over. Only this page's own things are undone.
+    player.onNearEnd(null)
     window.removeEventListener('keydown', onKey)
-    window.removeEventListener('pagehide', onPageHide)
     clearTimeout(toastTimer)
-    if (audio) {
-        const a = audio
-        audio = null // detach first so the events below are ignored
-        a.pause()
-        a.removeAttribute('src')
-        a.load()
-    }
 })
 </script>
 
@@ -647,8 +581,8 @@ onBeforeUnmount(() => {
     align-items: center;
     justify-content: center;
     min-height: 0;
-    padding-bottom: 44px; // keeps the track clear of the volume control in the corner
-    touch-action: none; // we handle vertical swipes ourselves
+    padding-bottom: 44px; /* keeps the track clear of the volume control in the corner */
+    touch-action: none; /* we handle vertical swipes ourselves */
     user-select: none;
     -webkit-user-select: none;
 
@@ -758,7 +692,7 @@ onBeforeUnmount(() => {
         color: var(--text-2);
     }
 
-    // why this track was picked for you ("Because you like Rock")
+    /* why this track was picked for you ("Because you like Rock") */
     &__reason {
         margin: 2px 0 0;
         font-size: 13px;
@@ -833,10 +767,11 @@ onBeforeUnmount(() => {
 .controls {
     display: flex;
     align-items: center;
-    gap: 22px;
+    gap: 18px;
     margin-top: 6px;
 
     button {
+        position: relative;
         display: grid;
         place-items: center;
         border: 0;
@@ -850,6 +785,34 @@ onBeforeUnmount(() => {
             opacity: 1;
             transform: scale(1.08);
         }
+    }
+
+    /* shuffle and repeat: dim when off, gold when on */
+    &__mode {
+        width: 36px;
+        height: 36px;
+        color: var(--text-2) !important;
+
+        &:disabled {
+            opacity: 0.35 !important;
+            transform: none !important;
+            cursor: not-allowed;
+        }
+
+        &.on {
+            color: var(--accent) !important;
+            opacity: 1 !important;
+        }
+    }
+
+    /* the "1" of repeat-one, on the corner of the icon */
+    &__one {
+        position: absolute;
+        right: 2px;
+        bottom: 1px;
+        font-size: 10px;
+        line-height: 1;
+        color: var(--accent);
     }
 
     &__play {
@@ -877,6 +840,15 @@ onBeforeUnmount(() => {
         .rail__btn {
             padding: 6px 0;
         }
+    }
+
+    &__menu {
+        position: relative; /* the dropdown opens to the left of its button */
+    }
+
+    &__btn.open {
+        border-color: var(--accent);
+        color: var(--accent);
     }
 
     &__btn {
@@ -917,7 +889,7 @@ onBeforeUnmount(() => {
             color: var(--accent);
 
             @media (min-width: 960px) {
-                display: none; // the panel is always visible on wide screens
+                display: none; /* the panel is always visible on wide screens */
             }
         }
     }

@@ -22,7 +22,7 @@ npm start
 
 ## Navigation
 
-The home page (`/`) is a welcome page for visitors who are not logged in; a logged-in user who opens it goes to the Feed page instead (the target is `HOME_FOR_USERS` in `app/utils/home.js`), and the menu hides *Home* for them. On that welcome page, **Start listening** and the genre cards open the log in / sign up window for visitors who are not logged in, and after logging in or signing up they continue to what they clicked (for example a genre). The **side menu is for logged-in users only**; visitors who are not logged in get a slim top bar (logo, theme switch, Log in, Sign up) and no menu. The menu: **Feed, News, Listen, Library, My collection, Subscriptions, Playlists**. The button at its top folds it to an icon rail (remembered in a cookie); on phones it becomes a drawer opened from the top bar. *My collection* lists the tracks you saved and liked. *Playlists* are your own ordered lists. Feed, News and Subscriptions are placeholder pages for now.
+The home page (`/`) is a welcome page for visitors who are not logged in; a logged-in user who opens it goes to the Feed page instead (the target is `HOME_FOR_USERS` in `app/utils/home.js`), and the menu hides *Home* for them. On that welcome page, **Start listening** and the genre cards open the log in / sign up window for visitors who are not logged in, and after logging in or signing up they continue to what they clicked (for example a genre). The **side menu is for logged-in users only**; visitors who are not logged in get a slim top bar (logo, theme switch, Log in, Sign up) and no menu. The menu: **Feed, News, Listen, Library, Profile, Subscriptions, Playlists**. The button at its top folds it to an icon rail (remembered in a cookie); on phones it becomes a drawer opened from the top bar. *Profile* has three tabs: **Account info** (name, email, member since and your counts), **Settings** (theme and the For you controls) and **Local** (the music folder). *Playlists* start with the built-in **Saved** and **Liked** lists (pinned on top; each has Play all and a remove button), then your own playlists. The old `/collection` address redirects to `/profile`. Feed, News and Subscriptions are placeholder pages for now.
 
 ## Access
 
@@ -33,9 +33,12 @@ The home page (`/`) is a welcome page for visitors who are not logged in; a logg
 
 ## Playlists and playing lists
 
-- **Add to a playlist** with the Playlist button on the listening page, or the `+` button on a track in My collection. You can create a playlist right there.
+- **Add to a playlist:** the **Playlist button** on the listening page opens a dropdown list (the same list as a pop-up window from the `+` buttons in the Library, artist lists and Saved/Liked). **Saved and Liked are pinned on top** (ticking them saves or likes the track, and the heart and star on the player follow), then your playlists, then a box to create a new one.
 - **Playlist page:** add songs by searching the library, sort (title, artist, date added, shuffle), move tracks with the arrow buttons or by dragging the grip, rename, remove, delete. Every change is saved on the server.
 - **Playing a list:** opening a track from Saved, Liked or a playlist (or pressing Play / Play all) plays through that list in order, shown as *Playing from ...* in the player. The URL looks like `/listener?source=saved&track=ID` (`source` is `saved`, `liked` or `playlist:ID`). The menu's Listen link returns to the shuffled feed.
+- **Side menu dropdown:** clicking *Playlists* in the side menu unfolds your lists right there (Saved and Liked pinned on top, then your playlists, then a link to the full page). From the collapsed rail it unfolds the menu first.
+- **Shuffle and repeat:** the buttons beside Previous/Next. Shuffle plays a list in random order, each track once (greyed out in the Listen feed, which is random already). Repeat cycles off, playlist (the list starts over) and this song. Both are remembered on the device.
+- **Mini player:** the audio lives in one shared player (`app/composables/usePlayer.js`), so music keeps playing on every page. Except on Listen (full player) a bar at the bottom shows the track with previous/play/next, seek, repeat, a volume button that opens the piano-key meter, and close. Clicking the track returns to it in the full player. Logging out stops the music.
 - Playlists are private to their owner.
 
 ## Themes
@@ -83,7 +86,7 @@ The genre tabs live in the **Library**; the home page shows a gold card per genr
 
 ## Local music folder
 
-The music folder is a setting. Open **My collection → Local** to see it, type or paste a different full path (for example `E:Music`) and press **Save**; **Rescan folder** looks for new or removed files, and **Use the default folder** goes back to `MUSIC_DIR` from `.env` (see `.env.example`), which is what the app uses until you save one. The folder is **read-only**: the app only lists, reads and streams `.mp3` files, it never writes there. Titles, artists, cover art and genres come from the files' tags (falling back to the `Artist - Title.mp3` filename). Tracks are indexed into the database on first load.
+The music folder is a setting. Open **Profile → Local** to see it, type or paste a different full path (for example `E:Music`) and press **Save**; **Rescan folder** looks for new or removed files, and **Use the default folder** goes back to `MUSIC_DIR` from `.env` (see `.env.example`), which is what the app uses until you save one. The folder is **read-only**: the app only lists, reads and streams `.mp3` files, it never writes there. Titles, artists, cover art and genres come from the files' tags (falling back to the `Artist - Title.mp3` filename). Tracks are indexed into the database on first load.
 
 - **Local only:** changing the folder works only for a browser on the same computer as the server (and only when logged in), because it chooses which folder on the server gets read. On a public deployment the tab is read-only.
 - **Switching folders is safe:** every track remembers the folder it came from. Tracks of a folder you switched away from are hidden from the feed and genres (and shown as *Unavailable* in your collection and playlists) but keep their likes, saves and playlist places; they come back if you switch back. Files you delete from the folder become unavailable on the next rescan.

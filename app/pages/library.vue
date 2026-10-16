@@ -66,7 +66,7 @@
             <p v-else-if="status === 'error'" class="lib__note">Could not load the library.</p>
             <p v-else-if="!groups.length" class="lib__note">
                 No music yet. Choose your music folder in
-                <NuxtLink to="/collection?tab=local">My collection &rarr; Local</NuxtLink>.
+                <NuxtLink to="/profile?tab=local">Profile &rarr; Local</NuxtLink>.
             </p>
 
             <!-- one genre: all its artists, A to Z -->
@@ -283,7 +283,7 @@ onBeforeUnmount(() => {
         }
     }
 
-    // the genre tabs reuse the Listen-page component; on this page they scroll with the content
+    /* the genre tabs reuse the Listen-page component; on this page they scroll with the content */
     &__tabs {
         margin: 0 -12px 8px;
     }
@@ -431,7 +431,7 @@ onBeforeUnmount(() => {
     }
 }
 
-// An artist name; the small number is how many of their tracks are in that genre
+/* An artist name; the small number is how many of their tracks are in that genre */
 .chip {
     display: inline-flex;
     align-items: baseline;

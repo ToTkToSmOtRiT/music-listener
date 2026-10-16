@@ -29,7 +29,9 @@ export const useApi = () => ({
     addComment: (id, payload) => $fetch(`/api/tracks/${id}/comments`, { method: 'POST', body: payload }),
     setFlag: (id, kind, on) => $fetch(`/api/tracks/${id}/${kind}`, { method: on ? 'POST' : 'DELETE' })
   },
+  account: () => $fetch('/api/account'),
   playlists: {
+    special: (trackId) => $fetch('/api/playlists/special', { query: trackId == null ? {} : { track: trackId } }),
     list: (trackId) => $fetch('/api/playlists', { query: trackId == null ? {} : { track: trackId } }),
     create: (name, trackId) => $fetch('/api/playlists', { method: 'POST', body: { name, trackId } }),
     get: (id) => $fetch(`/api/playlists/${id}`),
