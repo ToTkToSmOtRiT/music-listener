@@ -57,7 +57,9 @@ export function genresFromRaw(rawTags) {
 
 // --- rebuilding ---------------------------------------------------------------
 
-const artistKey = (artist) => String(artist).split(/\s+(?:feat\.?|ft\.?)\s+/i)[0].trim().toLowerCase()
+// "Linkin Park feat. Jay-Z" belongs to "Linkin Park"; the key is the lower-case primary name.
+export const primaryArtist = (artist) => String(artist).split(/\s+(?:feat\.?|ft\.?)\s+/i)[0].trim()
+export const artistKey = (artist) => primaryArtist(artist).toLowerCase()
 
 // Most common genres among the tagged tracks of a group (an artist or a folder).
 function sharedGenres(peers, tagGenres, minPeers, minShare) {

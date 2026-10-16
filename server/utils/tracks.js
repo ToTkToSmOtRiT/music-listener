@@ -94,6 +94,10 @@ export function listSource(source, user) {
             .all(user.id).map((r) => r.track_id)
         return { ids, label: source === 'saved' ? 'Saved' : 'Liked' }
     }
+    if (source.startsWith('artist:')) {
+        const artist = artistIndex().get(source.slice(7).trim().toLowerCase())
+        if (artist) return { ids: artistTrackIds(artist), label: artist.name }
+    }
     const match = /^playlist:(\d+)$/.exec(source)
     if (match) {
         const playlist = db.prepare('SELECT id, name FROM playlists WHERE id = ? AND user_id = ?').get(Number(match[1]), user.id)

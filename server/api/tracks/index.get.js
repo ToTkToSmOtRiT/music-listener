@@ -39,5 +39,6 @@ export default defineEventHandler(async (event) => {
     }
 
     const page = shuffled(all, seed).slice(offset, offset + limit)
-    return { total: all.length, items: await loadTracks(page, user?.id) }
+    const label = genre ? (genre === 'unsorted' ? 'Unsorted' : GENRE_BY_SLUG[genre].label) : undefined
+    return { total: all.length, label, items: await loadTracks(page, user.id) }
 })
