@@ -48,7 +48,25 @@ Where music is browsed. A search bar (artists and songs, live), genre tabs (**Al
 
 ## The listening page (`/listener`)
 
-The **Listen** tab: a full-screen feed of random tracks from the whole library, one at a time (a "For you" mode is planned).
+The **Listen** tab: a full-screen feed, one track at a time, with two modes (switch at the top): **For you** and **Random** (the whole library, shuffled).
+
+### For you
+
+A small recommender that runs on this server (no external AI, nothing leaves it). It learns from what each user does:
+
+| Signal | Weight |
+|---|---|
+| heard to the end | +1 |
+| heard partly (over 40% or 30 s) | +0.3 |
+| skipped after 10-30 s | -0.4 |
+| skipped within 10 s | -1 |
+| liked / saved / added to a playlist | +2 / +3 / +2 (taking it back undoes it) |
+
+Each signal adds to a score for the track, its artist and its genres. Scores fade with a 30-day half-life, so tastes can change. To pick tracks it scores every track (artist + 0.8 x genre + track), then **samples** in proportion to the scores instead of taking the top N, so the feed varies; about one pick in five is **something new** (an artist not played yet, in a genre you like). Tracks played in the last 3 hours or skipped in the last day are not offered. Each pick shows why ("Because you like Rock"). With fewer than 8 plays it is still **learning** and mostly random.
+
+- **Settings** (the sliders button next to the switch): turn it off (nothing is learned, the feed is random), see what it learned, or **reset** it (deletes the user's plays and scores).
+- **Storage:** raw plays are kept 90 days (about 100 bytes each); older listening lives on only as the scores, so it stays small (roughly 0.1-1 MB per user). Tables: `plays`, `taste`, `taste_settings`. Code: `server/utils/taste.js`.
+- **API:** `POST /api/plays` (the player reports a track when it moves on), `GET /api/foryou`, `GET|DELETE /api/foryou/profile`, `PUT /api/foryou/settings`.
 
 - **Change track:** swipe up/down, mouse wheel, or `↓`/`↑` (`j`/`k`). Each track has its own URL (`/listener?track=ID`), which is what Share copies.
 - **Player:** play/pause (`Space`), seek bar, volume meter drawn as piano keys, with mute (`m`). Volume is remembered.

@@ -2,6 +2,10 @@
     <section class="feed">
         <CoverBackdrop :src="coverUrl" :seed="current?.id ?? 0" />
 
+        <!-- The Listen tab: "For you" or plain random. Not shown while playing a list or a genre. -->
+        <ListenBar v-if="plainFeed" :mode="mode" :enabled="foryouOn" :learning="learning" @update:mode="setMode"
+            @settings-changed="onSettingsChanged" />
+
         <div class="feed__layout">
             <div class="stage" @pointerdown="onDown" @pointerup="onUp" @pointercancel="tracking = false"
                 @wheel="onWheel">
@@ -23,6 +27,7 @@
 
                     <h2 class="slide__title">{{ current.title }}</h2>
                     <p class="slide__artist">{{ current.artist }}</p>
+                    <p v-if="current.reason" class="slide__reason">{{ current.reason }}</p>
                     <p v-if="current.genres?.length" class="slide__genres">
                         <button v-for="g in current.genres" :key="g.slug" type="button" :title="`Browse ${g.label}`"
                             @click="openGenre(g.slug)">{{ g.label }}</button>
@@ -125,6 +130,13 @@ const pickerOpen = ref(false)
 const sourceLabel = ref('') // e.g. "Saved" or a playlist name; empty for the shuffled feed
 const genreLabel = ref('') // set when the shuffled feed is limited to one genre (from the Library)
 
+// The Listen tab has two modes: "For you" (picked from what you play, skip and like) and "Random".
+const mode = ref('foryou')
+const foryouOn = ref(true) // the user's switch for "For you" (settings window)
+const learning = ref(false) // true while it has seen too few plays to personalise
+const plainFeed = ref(false) // the Listen tab itself, as opposed to a list or a genre
+let feedKind = 'random' // what the current feed was loaded as: 'foryou' or 'random'
+
 const current = computed(() => tracks.value[index.value] ?? null)
 const coverUrl = computed(() => (current.value?.hasCover ? `/api/tracks/${current.value.id}/cover` : ''))
 // Same hue as the CoverBackdrop gradient, so the tile and the background match.
@@ -143,13 +155,27 @@ let total = 0
 let loadingMore = false
 
 async function loadMore() {
-    if (loadingMore || (total && offset >= total)) return
+    if (loadingMore || (feedKind === 'random' && total && offset >= total)) return
     loadingMore = true
     try {
-        const res = await api.tracks.page({ limit: PAGE, offset, seed, genre: genre || undefined })
-        total = res.total
-        offset += PAGE
-        genreLabel.value = res.label ?? ''
+        let res
+        if (feedKind === 'foryou') {
+            // "For you" never runs out; what the page already holds is excluded so nothing repeats
+            try {
+                res = await api.foryou.page({ limit: PAGE, exclude: tracks.value.slice(-300).map((t) => t.id) })
+                learning.value = res.learning
+            } catch (error) {
+                if ((error.statusCode ?? error.status) !== 409) throw error
+                foryouOn.value = false // turned off from another tab or window: carry on with random
+                feedKind = 'random'
+            }
+        }
+        if (feedKind === 'random') {
+            res = await api.tracks.page({ limit: PAGE, offset, seed, genre: genre || undefined })
+            total = res.total
+            offset += PAGE
+            genreLabel.value = res.label ?? ''
+        }
         const known = new Set(tracks.value.map((t) => t.id))
         tracks.value.push(...res.items.filter((t) => !known.has(t.id)))
     } finally {
@@ -169,7 +195,40 @@ function openGenre(slug) {
     navigateTo({ path: '/library', query: { genre: slug } })
 }
 
-async function init() {
+// Switching between "For you" and "Random" starts a fresh feed.
+function setMode(next) {
+    if (next === mode.value) return
+    mode.value = next
+    try {
+        localStorage.setItem('listenMode', next)
+    } catch (error) { /* storage unavailable */ }
+    // A new feed starts with a new track. The address holds the playing track (?track=...), which is
+    // meant for shared links and page loads, so drop it or it would be put first again.
+    const query = { ...route.query }
+    delete query.track
+    router.replace({ query })
+    init({ fresh: true })
+}
+
+async function loadSettings() {
+    try {
+        const profile = await api.foryou.profile()
+        foryouOn.value = profile.enabled
+        learning.value = profile.learning
+    } catch (error) { /* keep the defaults */ }
+}
+
+// The settings window turned "For you" on or off, or reset the profile. The track playing right now is
+// not reported: after a reset nothing about the old listening should be written back.
+async function onSettingsChanged() {
+    play = null
+    await loadSettings()
+    init()
+}
+
+// fresh: ignore ?track= in the address (see setMode) and start with whatever the feed picks
+async function init({ fresh = false } = {}) {
+    flushPlay() // report the track being left
     source = querySource()
     genre = queryGenre()
     sourceLabel.value = ''
@@ -182,7 +241,7 @@ async function init() {
     status.value = 'loading'
     try {
         const wanted = Number(route.query.track)
-        const hasWanted = Boolean(route.query.track) && Number.isInteger(wanted)
+        const hasWanted = !fresh && Boolean(route.query.track) && Number.isInteger(wanted)
 
         if (source) {
             try {
@@ -204,6 +263,8 @@ async function init() {
         }
 
         if (!source) {
+            plainFeed.value = !genre
+            feedKind = plainFeed.value && mode.value === 'foryou' && foryouOn.value ? 'foryou' : 'random'
             if (hasWanted) {
                 const { items } = await api.tracks.byIds([wanted])
                 tracks.value.push(...items)
@@ -214,8 +275,13 @@ async function init() {
                 if (!genre || (error.statusCode ?? error.status) !== 404) throw error
                 showToast('That genre does not exist')
                 genre = ''
+                plainFeed.value = true
+                feedKind = mode.value === 'foryou' && foryouOn.value ? 'foryou' : 'random'
                 await loadMore()
             }
+        } else {
+            plainFeed.value = false
+            feedKind = 'random'
         }
         status.value = tracks.value.length ? 'ready' : 'empty'
     } catch (error) {
@@ -235,6 +301,7 @@ function go(step) {
     let next = index.value + step
     if (next < 0) return showToast('This is where your feed starts')
     if (next >= n) next = 0 // end of the feed or list: start over
+    flushPlay() // report the track being left: heard to the end, or skipped
     direction.value = step > 0 ? 'next' : 'prev'
     index.value = next
     hint.value = false
@@ -255,11 +322,20 @@ function ensureAudio() {
     // Handlers use their own element and ignore it once it has been discarded:
     // tearing down the player makes the element fire a few late events.
     const live = (fn) => () => { if (audio === a) fn() }
-    a.addEventListener('timeupdate', live(() => { currentTime.value = a.currentTime }))
-    a.addEventListener('durationchange', live(() => { duration.value = Number.isFinite(a.duration) ? a.duration : 0 }))
+    a.addEventListener('timeupdate', live(() => {
+        currentTime.value = a.currentTime
+        if (play) play.listened = Math.max(play.listened, a.currentTime)
+    }))
+    a.addEventListener('durationchange', live(() => {
+        duration.value = Number.isFinite(a.duration) ? a.duration : 0
+        if (play) play.duration = duration.value
+    }))
     a.addEventListener('play', live(() => { isPlaying.value = true }))
     a.addEventListener('pause', live(() => { isPlaying.value = false }))
-    a.addEventListener('playing', live(() => { failures = 0 }))
+    a.addEventListener('playing', live(() => {
+        failures = 0
+        if (play) play.started = true // only tracks that really began playing are reported
+    }))
     a.addEventListener('ended', live(() => go(1)))
     a.addEventListener('error', live(() => {
         if (!a.getAttribute('src')) return
@@ -270,8 +346,30 @@ function ensureAudio() {
     return a
 }
 
+// What "For you" learns from: for each track, how long it was heard out of how long it is.
+// A play is reported when the player moves on (next track, new feed, leaving the page).
+let play = null // { id, started, listened, duration }
+
+function flushPlay(useBeacon = false) {
+    const p = play
+    play = null
+    if (!p || !p.started || !p.duration) return
+    const body = JSON.stringify({
+        trackId: p.id,
+        listened: Math.round(p.listened * 10) / 10,
+        duration: Math.round(p.duration * 10) / 10
+    })
+    if (useBeacon && navigator.sendBeacon) {
+        navigator.sendBeacon('/api/plays', new Blob([body], { type: 'application/json' }))
+    } else {
+        fetch('/api/plays', { method: 'POST', headers: { 'content-type': 'application/json' }, body, keepalive: true })
+            .catch(() => { /* a lost report only means a little less learned */ })
+    }
+}
+
 function loadAudio(autoplay) {
     const a = ensureAudio()
+    play = { id: current.value.id, started: false, listened: 0, duration: 0 }
     a.src = `/api/tracks/${current.value.id}/audio`
     currentTime.value = 0
     duration.value = 0
@@ -460,12 +558,25 @@ onMounted(() => {
         set('play', () => togglePlay())
         set('pause', () => togglePlay())
     }
+    try {
+        const savedMode = localStorage.getItem('listenMode')
+        if (savedMode === 'foryou' || savedMode === 'random') mode.value = savedMode
+    } catch (error) { /* storage unavailable */ }
+
     window.addEventListener('keydown', onKey)
-    init()
+    window.addEventListener('pagehide', onPageHide)
+    loadSettings().then(() => init()) // know whether "For you" is on before the first feed is loaded
 })
 
+// Closing the tab or reloading: send the last play before the page goes away.
+function onPageHide() {
+    flushPlay(true)
+}
+
 onBeforeUnmount(() => {
+    flushPlay(true) // leaving the Listen tab: report the track that was playing
     window.removeEventListener('keydown', onKey)
+    window.removeEventListener('pagehide', onPageHide)
     clearTimeout(toastTimer)
     if (audio) {
         const a = audio
@@ -645,6 +756,14 @@ onBeforeUnmount(() => {
         margin: 0;
         font-size: 15px;
         color: var(--text-2);
+    }
+
+    // why this track was picked for you ("Because you like Rock")
+    &__reason {
+        margin: 2px 0 0;
+        font-size: 13px;
+        font-style: italic;
+        color: var(--accent);
     }
 
     &__genres {

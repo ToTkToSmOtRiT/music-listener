@@ -7,6 +7,12 @@ export const useApi = () => ({
   },
   collection: (type) => $fetch('/api/collection', { query: { type } }),
   search: (q) => $fetch('/api/search', { query: { q } }),
+  foryou: {
+    page: ({ limit, exclude }) => $fetch('/api/foryou', { query: { limit, exclude: exclude.join(',') } }),
+    profile: () => $fetch('/api/foryou/profile'),
+    setEnabled: (enabled) => $fetch('/api/foryou/settings', { method: 'PUT', body: { enabled } }),
+    reset: () => $fetch('/api/foryou/profile', { method: 'DELETE' })
+  },
   artists: {
     list: (genre) => $fetch('/api/artists', { query: genre ? { genre } : {} }),
     get: (key) => $fetch(`/api/artists/${encodeURIComponent(key)}`)
