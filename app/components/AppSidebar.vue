@@ -15,7 +15,7 @@
             <nav class="sidebar__nav">
                 <ul>
                     <li v-for="item in items" :key="item.to">
-                        <NuxtLink :to="item.to" class="sidebar__link" exact-active-class="is-active" :active-class="item.to === '/' ? '' : 'is-active'"
+                        <NuxtLink :to="item.to" class="sidebar__link" exact-active-class="is-active" active-class="is-active"
                             :title="collapsed ? item.label : undefined">
                             <AppIcon :name="item.icon" />
                             <span class="sidebar__label">{{ item.label }}</span>
@@ -33,46 +33,31 @@
                     <AppIcon :name="theme === 'ebony' ? 'sun' : 'moon'" />
                 </button>
 
-                <template v-if="user">
-                    <div class="sidebar__user" :title="user.email">
-                        <span class="sidebar__avatar">{{ user.username.charAt(0).toUpperCase() }}</span>
-                        <span class="sidebar__label sidebar__name">{{ user.username }}</span>
-                    </div>
-                    <button type="button" class="sidebar__link sidebar__link--btn" title="Log out" @click="logout">
-                        <AppIcon name="logout" />
-                        <span class="sidebar__label">Log out</span>
-                    </button>
-                </template>
-                <template v-else>
-                    <button type="button" class="sidebar__link sidebar__link--btn" title="Log in" @click="openAuth(true)">
-                        <AppIcon name="login" />
-                        <span class="sidebar__label">Log in</span>
-                    </button>
-                    <button type="button" class="btn btn--solid sidebar__signup sidebar__label"
-                        @click="openAuth(false)">Sign up</button>
-                </template>
+                <div class="sidebar__user" :title="user?.email">
+                    <span class="sidebar__avatar">{{ user?.username.charAt(0).toUpperCase() }}</span>
+                    <span class="sidebar__label sidebar__name">{{ user?.username }}</span>
+                </div>
+                <button type="button" class="sidebar__link sidebar__link--btn" title="Log out" @click="logout">
+                    <AppIcon name="logout" />
+                    <span class="sidebar__label">Log out</span>
+                </button>
             </div>
         </aside>
-
-        <AuthModal :open="modal.open" :mode="modal.login" @close="modal.open = false"
-            @switch="modal.login = !modal.login" />
     </div>
 </template>
 
 <script setup>
 const api = useApi()
 const user = useUser()
-const modal = useAuthModal()
 const theme = useTheme()
 const route = useRoute()
 const { collapsed, open, toggleCollapsed, closeDrawer } = useSidebar()
 
 const items = [
-    { to: '/', label: 'Home', icon: 'home' },
-    { to: '/listener', label: 'Listen', icon: 'listen' },
-    { to: '/collection', label: 'My collection', icon: 'collection' },
     { to: '/feed', label: 'Feed', icon: 'feed', soon: true },
     { to: '/news', label: 'News', icon: 'news', soon: true },
+    { to: '/listener', label: 'Listen', icon: 'listen' },
+    { to: '/collection', label: 'My collection', icon: 'collection' },
     { to: '/subscriptions', label: 'Subscriptions', icon: 'subscriptions', soon: true },
     { to: '/playlists', label: 'Playlists', icon: 'playlist' },
 ]
@@ -85,14 +70,18 @@ function onToggle() {
 
 watch(() => route.path, closeDrawer)
 
+// Logging out leads to the home page. The user is cleared first: the route guard would otherwise
+// still see a logged-in user and send "/" straight back to the start page.
 async function logout() {
     if (!user.value) return
     clearUser()
+    const done = navigateTo('/', { replace: true })
     try {
         await api.auth.logout()
     } catch (error) {
         console.error('Logout request failed', error.message)
     }
+    await done
 }
 </script>
 

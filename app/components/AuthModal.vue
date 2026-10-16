@@ -7,7 +7,7 @@
 
                     <h2 :id="titleId" class="auth-title">{{ mode ? 'Welcome back' : 'Create account' }}</h2>
                     <p class="auth-subtitle">
-                        {{ mode ? 'Log in to leave comments under your name.' : 'Join to comment on songs under your own name.' }}
+                        {{ reason || (mode ? 'Log in to leave comments under your name.' : 'Join to comment on songs under your own name.') }}
                     </p>
 
                     <div class="auth-tabs" role="tablist">
@@ -68,6 +68,7 @@ const props = defineProps({
     open: Boolean,
     // true = log in, false = sign up
     mode: Boolean,
+    reason: { type: String, default: '' },
 })
 const emit = defineEmits(['close', 'switch'])
 

@@ -89,12 +89,17 @@
                     </span>
                     <span class="pl__no">{{ i + 1 }}</span>
 
-                    <NuxtLink :to="listenTo(t)" class="pl__track" draggable="false">
+                    <NuxtLink :to="t.available ? listenTo(t) : { path: route.path }" class="pl__track"
+                        :class="{ off: !t.available }" draggable="false">
                         <span class="pl__art" :style="t.hasCover ? null : tileStyle(t.id)">
                             <img v-if="t.hasCover" :src="`/api/tracks/${t.id}/cover`" alt="" loading="lazy" draggable="false">
                             <AppIcon v-else name="listen" :size="18" />
                         </span>
-                        <span class="pl__meta"><strong>{{ t.title }}</strong><small>{{ t.artist }}</small></span>
+                        <span class="pl__meta">
+                            <strong>{{ t.title }}</strong>
+                            <small>{{ t.artist }}</small>
+                            <small v-if="!t.available" class="pl__off">Not in the current music folder</small>
+                        </span>
                     </NuxtLink>
 
                     <div class="pl__row">
@@ -581,6 +586,20 @@ watch(id, () => {
         gap: 12px;
         min-width: 0;
         text-decoration: none;
+
+        // from a music folder that is not the selected one: listed, but it cannot play
+        &.off {
+            cursor: not-allowed;
+
+            .pl__art,
+            strong {
+                opacity: 0.45;
+            }
+        }
+    }
+
+    &__off {
+        color: var(--accent) !important;
     }
 
     &__art {

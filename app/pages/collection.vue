@@ -2,7 +2,7 @@
     <section class="page collection">
         <header class="page__head">
             <h1>My collection</h1>
-            <p>Tracks you saved and liked. Opening one plays through the whole list.</p>
+            <p>Your saved and liked tracks, and the music folder on this computer.</p>
         </header>
 
         <div v-if="!user" class="collection__empty">
@@ -16,24 +16,30 @@
                     <button v-for="t in tabs" :key="t.id" type="button" role="tab" :aria-selected="tab === t.id"
                         :class="{ on: tab === t.id }" @click="tab = t.id">{{ t.label }}</button>
                 </div>
-                <NuxtLink v-if="items.length" :to="{ path: '/listener', query: { source: tab } }"
+                <NuxtLink v-if="tab !== 'local' && items.some((t) => t.available)" :to="{ path: '/listener', query: { source: tab } }"
                     class="btn btn--solid">
                     <AppIcon name="play" :size="16" /> Play all
                 </NuxtLink>
             </div>
 
-            <p v-if="status === 'loading'" class="collection__note">Loading…</p>
+            <LocalLibrary v-if="tab === 'local'" />
+
+            <p v-else-if="status === 'loading'" class="collection__note">Loading…</p>
             <p v-else-if="status === 'error'" class="collection__note">Could not load your collection.</p>
             <p v-else-if="!items.length" class="collection__note">
                 Nothing here yet. Use {{ tab === 'saved' ? 'Save' : 'the heart' }} on the listening page.
             </p>
 
             <ul v-else class="collection__grid">
-                <li v-for="t in items" :key="t.id" class="tile">
-                    <NuxtLink :to="{ path: '/listener', query: { source: tab, track: t.id } }" class="tile__link">
+                <li v-for="t in items" :key="t.id" class="tile" :class="{ 'tile--off': !t.available }">
+                    <!-- an unavailable track links back to this page, so clicking it does nothing -->
+                    <NuxtLink :to="t.available ? { path: '/listener', query: { source: tab, track: t.id } } : { path: route.path, query: route.query }"
+                        class="tile__link"
+                        :title="t.available ? undefined : 'This track is in a music folder that is not selected now'">
                         <span class="tile__art" :style="t.hasCover ? null : tileStyle(t.id)">
                             <img v-if="t.hasCover" :src="`/api/tracks/${t.id}/cover`" alt="" loading="lazy">
                             <AppIcon v-else name="listen" :size="30" />
+                            <em v-if="!t.available" class="tile__off">Unavailable</em>
                         </span>
                         <strong>{{ t.title }}</strong>
                         <small>{{ t.artist }}</small>
@@ -58,15 +64,18 @@ useHead({ title: 'My collection - Music listener' })
 const tabs = [
     { id: 'saved', label: 'Saved' },
     { id: 'liked', label: 'Liked' },
+    { id: 'local', label: 'Local' },
 ]
-const tab = ref('saved')
+const route = useRoute()
+// /collection?tab=local opens the Local tab directly
+const tab = ref(tabs.some((t) => t.id === route.query.tab) ? route.query.tab : 'saved')
 const items = ref([])
 const status = ref('loading')
 const pickerTrack = ref(null)
 
 let requestId = 0
 async function load() {
-    if (!user.value) return
+    if (!user.value || tab.value === 'local') return
     const mine = ++requestId
     status.value = 'loading'
     try {
@@ -171,6 +180,33 @@ watch([tab, user], load)
     &__link:hover &__art {
         transform: translateY(-3px);
         box-shadow: var(--shadow);
+    }
+
+    // A track from a music folder that is not the selected one: shown, but it cannot play.
+    &--off &__art,
+    &--off strong,
+    &--off small {
+        opacity: 0.45;
+    }
+
+    &--off &__link {
+        cursor: not-allowed;
+    }
+
+    &__art {
+        position: relative;
+    }
+
+    &__off {
+        position: absolute;
+        left: 8px;
+        bottom: 8px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.7);
+        font-size: 11px;
+        font-style: normal;
+        color: #fff;
     }
 
     &__add {

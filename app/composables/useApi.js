@@ -7,6 +7,11 @@ export const useApi = () => ({
   },
   collection: (type) => $fetch('/api/collection', { query: { type } }),
   search: (q) => $fetch('/api/search', { query: { q } }),
+  library: {
+    get: () => $fetch('/api/library'),
+    save: (dir) => $fetch('/api/library', { method: 'PUT', body: { dir } }),
+    rescan: () => $fetch('/api/library/rescan', { method: 'POST' })
+  },
   tracks: {
     page: (query) => $fetch('/api/tracks', { query }),
     byIds: (ids) => $fetch('/api/tracks', { query: { ids: ids.join(',') } }),
