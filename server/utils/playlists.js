@@ -25,6 +25,15 @@ export function playlistTrackIds(playlistId) {
         .map((r) => r.track_id)
 }
 
+// Tracks that are in the current music folder; tracks from another folder are skipped when playing.
+export function playablePlaylistTrackIds(playlistId) {
+    return useDb()
+        .prepare(`SELECT pt.track_id FROM playlist_tracks pt JOIN tracks t ON t.id = pt.track_id
+                  WHERE pt.playlist_id = ? AND t.available = 1 ORDER BY pt.position`)
+        .all(playlistId)
+        .map((r) => r.track_id)
+}
+
 export function trackExists(id) {
     return Number.isInteger(id) && Boolean(useDb().prepare('SELECT 1 FROM tracks WHERE id = ?').get(id))
 }

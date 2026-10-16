@@ -1,7 +1,6 @@
 import { DatabaseSync } from 'node:sqlite'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import seed from '../data/comments.json'
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS users (
@@ -27,7 +26,19 @@ CREATE TABLE IF NOT EXISTS tracks (
     meta_done  INTEGER NOT NULL DEFAULT 0
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS tracks_src ON tracks(src);
+CREATE TABLE IF NOT EXISTS track_genres (
+    track_id INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    genre    TEXT NOT NULL,
+    source   TEXT NOT NULL DEFAULT 'tag',
+    PRIMARY KEY (track_id, genre)
+);
+
+CREATE INDEX IF NOT EXISTS track_genres_genre ON track_genres(genre);
+
+CREATE TABLE IF NOT EXISTS meta (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS likes (
     user_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -70,24 +81,6 @@ CREATE TABLE IF NOT EXISTS comments (
 CREATE INDEX IF NOT EXISTS comments_track ON comments(track_id);
 `
 
-// Import the original JSON songs/comments the first time the database is created.
-function seedIfEmpty(db) {
-    if (db.prepare('SELECT COUNT(*) AS n FROM tracks').get().n > 0) return
-    const insertTrack = db.prepare('INSERT INTO tracks (id, artist, title, src, meta_done) VALUES (?, ?, ?, ?, 1)')
-    const insertComment = db.prepare('INSERT INTO comments (track_id, author_name, body) VALUES (?, ?, ?)')
-    db.exec('BEGIN')
-    try {
-        for (const track of seed.songs) {
-            insertTrack.run(track.id, track.artist, track.song, track.src)
-            for (const c of track.comments) insertComment.run(track.id, c.name, c.comment)
-        }
-        db.exec('COMMIT')
-    } catch (error) {
-        db.exec('ROLLBACK')
-        throw error
-    }
-}
-
 // Databases created before a column existed get it added in place.
 function ensureColumn(db, table, column, definition) {
     const has = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column)
@@ -105,7 +98,13 @@ export function useDb() {
     instance.exec(SCHEMA)
     ensureColumn(instance, 'tracks', 'has_cover', 'INTEGER NOT NULL DEFAULT 0')
     ensureColumn(instance, 'tracks', 'meta_done', 'INTEGER NOT NULL DEFAULT 0')
-    seedIfEmpty(instance)
+    ensureColumn(instance, 'tracks', 'genre_raw', 'TEXT')
+    ensureColumn(instance, 'tracks', 'genre_done', 'INTEGER NOT NULL DEFAULT 0')
+    ensureColumn(instance, 'tracks', 'lib_root', 'TEXT')
+    ensureColumn(instance, 'tracks', 'available', 'INTEGER NOT NULL DEFAULT 1')
+    // The same relative path can exist in two different music folders, so the folder is part of the key.
+    instance.exec('DROP INDEX IF EXISTS tracks_src')
+    instance.exec("CREATE UNIQUE INDEX IF NOT EXISTS tracks_root_src ON tracks(COALESCE(lib_root, ''), src)")
     db = instance
     return db
 }

@@ -6,8 +6,10 @@ const TYPES = { '.mp3': 'audio/mpeg', '.flac': 'audio/flac', '.ogg': 'audio/ogg'
 
 // Streams the audio file with HTTP range support so the player can seek.
 export default defineEventHandler(async (event) => {
+    requireUser(event) // listening needs an account; checked before looking the track up
     const track = requireTrack(event)
-    const file = resolveTrackFile(track.src)
+    if (!track.available) throw createError({ statusCode: 404, statusMessage: 'This track is not in the current music folder' })
+    const file = resolveTrackFile(track.src, track.lib_root)
     const info = file && (await stat(file).catch(() => null))
     if (!info?.isFile()) throw createError({ statusCode: 404, statusMessage: 'Audio file not found' })
 

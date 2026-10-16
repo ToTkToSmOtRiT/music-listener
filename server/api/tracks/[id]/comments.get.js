@@ -1,1 +1,4 @@
-export default defineEventHandler((event) => listComments(requireTrack(event).id))
+export default defineEventHandler((event) => {
+    requireUser(event)
+    return listComments(requireTrack(event).id)
+})

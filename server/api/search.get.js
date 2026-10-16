@@ -1,12 +1,13 @@
 // GET /api/search?q=text -> up to 20 tracks whose artist or title contain every word.
 // Whole-phrase matches (and titles that start with the phrase) come first.
 export default defineEventHandler(async (event) => {
+    const user = requireUser(event)
     const phrase = String(getQuery(event).q ?? '').toLocaleLowerCase().trim().replace(/\s+/g, ' ')
     const words = phrase.split(' ').filter(Boolean)
     if (!words.length || words.join('').length < 2) return { items: [] }
 
     // Filtered in JS rather than SQL LIKE so non-ASCII names match case-insensitively.
-    const ids = useDb().prepare('SELECT id, artist, title FROM tracks').all()
+    const ids = useDb().prepare('SELECT id, artist, title FROM tracks WHERE available = 1').all()
         .map((t) => {
             const title = t.title.toLocaleLowerCase()
             const hay = `${t.artist} ${t.title}`.toLocaleLowerCase()
@@ -19,5 +20,5 @@ export default defineEventHandler(async (event) => {
         .slice(0, 20)
         .map((t) => t.id)
 
-    return { items: await loadTracks(ids, getSessionUser(event)?.id) }
+    return { items: await loadTracks(ids, user.id) }
 })

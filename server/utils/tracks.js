@@ -3,7 +3,7 @@ async function refineTags(rows) {
     const db = useDb()
     const update = db.prepare('UPDATE tracks SET artist = ?, title = ?, has_cover = ?, meta_done = 1 WHERE id = ?')
     await Promise.all(rows.filter((r) => !r.meta_done).map(async (row) => {
-        const file = resolveTrackFile(row.src)
+        const file = resolveTrackFile(row.src, row.lib_root)
         let tags = null
         try {
             tags = file && (await readTags(file))
@@ -20,7 +20,7 @@ async function refineTags(rows) {
 // Returns public track objects for the given ids, in the same order.
 export async function loadTracks(ids, userId = null) {
     const db = useDb()
-    const get = db.prepare('SELECT id, artist, title, src, has_cover, meta_done FROM tracks WHERE id = ?')
+    const get = db.prepare('SELECT id, artist, title, src, lib_root, available, has_cover, meta_done FROM tracks WHERE id = ?')
     const rows = ids.map((id) => get.get(id)).filter(Boolean)
     await refineTags(rows)
 
@@ -28,12 +28,18 @@ export async function loadTracks(ids, userId = null) {
     const comments = db.prepare('SELECT COUNT(*) AS n FROM comments WHERE track_id = ?')
     const liked = db.prepare('SELECT 1 FROM likes WHERE track_id = ? AND user_id = ?')
     const favourited = db.prepare('SELECT 1 FROM favourites WHERE track_id = ? AND user_id = ?')
-
+    const genresOf = db.prepare('SELECT genre FROM track_genres WHERE track_id = ?')
     return rows.map((r) => ({
         id: r.id,
         artist: r.artist,
         title: r.title,
         hasCover: Boolean(r.has_cover),
+        available: Boolean(r.available),
+        genres: genresOf.all(r.id)
+            .map((g) => GENRE_BY_SLUG[g.genre])
+            .filter(Boolean)
+            .sort((a, b) => a.order - b.order)
+            .map((g) => ({ slug: g.slug, label: g.label })),
         likes: likes.get(r.id).n,
         comments: comments.get(r.id).n,
         liked: userId ? Boolean(liked.get(r.id, userId)) : false,
@@ -43,7 +49,7 @@ export async function loadTracks(ids, userId = null) {
 
 export function requireTrack(event) {
     const id = Number(getRouterParam(event, 'id'))
-    const track = Number.isInteger(id) && useDb().prepare('SELECT id, src, has_cover FROM tracks WHERE id = ?').get(id)
+    const track = Number.isInteger(id) && useDb().prepare('SELECT id, src, lib_root, available, has_cover FROM tracks WHERE id = ?').get(id)
     if (!track) throw createError({ statusCode: 404, statusMessage: 'Track not found' })
     return track
 }
@@ -84,14 +90,14 @@ export function listSource(source, user) {
     const db = useDb()
     if (source === 'saved' || source === 'liked') {
         const table = source === 'saved' ? 'favourites' : 'likes'
-        const ids = db.prepare(`SELECT track_id FROM ${table} WHERE user_id = ? ORDER BY rowid DESC LIMIT 1000`)
+        const ids = db.prepare(`SELECT x.track_id FROM ${table} x JOIN tracks t ON t.id = x.track_id WHERE x.user_id = ? AND t.available = 1 ORDER BY x.rowid DESC LIMIT 1000`)
             .all(user.id).map((r) => r.track_id)
         return { ids, label: source === 'saved' ? 'Saved' : 'Liked' }
     }
     const match = /^playlist:(\d+)$/.exec(source)
     if (match) {
         const playlist = db.prepare('SELECT id, name FROM playlists WHERE id = ? AND user_id = ?').get(Number(match[1]), user.id)
-        if (playlist) return { ids: playlistTrackIds(playlist.id), label: playlist.name }
+        if (playlist) return { ids: playablePlaylistTrackIds(playlist.id), label: playlist.name }
     }
     throw createError({ statusCode: 404, statusMessage: 'List not found' })
 }
