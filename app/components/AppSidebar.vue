@@ -57,6 +57,7 @@ const items = [
     { to: '/feed', label: 'Feed', icon: 'feed', soon: true },
     { to: '/news', label: 'News', icon: 'news', soon: true },
     { to: '/listener', label: 'Listen', icon: 'listen' },
+    { to: '/library', label: 'Library', icon: 'library' },
     { to: '/collection', label: 'My collection', icon: 'collection' },
     { to: '/subscriptions', label: 'Subscriptions', icon: 'subscriptions', soon: true },
     { to: '/playlists', label: 'Playlists', icon: 'playlist' },

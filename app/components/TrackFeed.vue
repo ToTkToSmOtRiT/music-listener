@@ -2,9 +2,6 @@
     <section class="feed">
         <CoverBackdrop :src="coverUrl" :seed="current?.id ?? 0" />
 
-        <GenreBar v-if="genreData?.items.length" :items="genreData.items" :total="genreData.total"
-            :unsorted="genreData.unsorted" :model-value="activeGenre" @select="selectGenre" />
-
         <div class="feed__layout">
             <div class="stage" @pointerdown="onDown" @pointerup="onUp" @pointercancel="tracking = false"
                 @wheel="onWheel">
@@ -28,7 +25,7 @@
                     <p class="slide__artist">{{ current.artist }}</p>
                     <p v-if="current.genres?.length" class="slide__genres">
                         <button v-for="g in current.genres" :key="g.slug" type="button" :title="`Browse ${g.label}`"
-                            @click="selectGenre(g.slug)">{{ g.label }}</button>
+                            @click="openGenre(g.slug)">{{ g.label }}</button>
                     </p>
 
                     <div class="seekbar">
@@ -88,6 +85,9 @@
                 <p v-if="current && sourceLabel" class="stage__hint stage__hint--source">
                     Playing from {{ sourceLabel }} &middot; {{ index + 1 }} of {{ tracks.length }}
                 </p>
+                <p v-else-if="current && genreLabel" class="stage__hint stage__hint--source">
+                    Shuffling {{ genreLabel }}
+                </p>
                 <p v-else-if="current && hint" class="stage__hint">Swipe up or down to change the track</p>
             </div>
 
@@ -123,21 +123,7 @@ const hint = ref(true)
 const panel = ref(null)
 const pickerOpen = ref(false)
 const sourceLabel = ref('') // e.g. "Saved" or a playlist name; empty for the shuffled feed
-
-// Genre sections. The counts can still be growing while the server reads the library's tags.
-const { data: genreData, refresh: refreshGenres } = useFetch('/api/genres', { key: 'genres', lazy: true })
-const activeGenre = ref('') // '' = All, 'unsorted', a genre slug, or null while playing a saved list/playlist
-let genrePoll
-function pollGenresWhileScanning() {
-    clearInterval(genrePoll)
-    genrePoll = setInterval(async () => {
-        await refreshGenres()
-        if (!genreData.value?.scanning.running) clearInterval(genrePoll)
-    }, 3000)
-}
-watch(() => genreData.value?.scanning.running, (running) => {
-    if (running && import.meta.client) pollGenresWhileScanning()
-}, { immediate: true })
+const genreLabel = ref('') // set when the shuffled feed is limited to one genre (from the Library)
 
 const current = computed(() => tracks.value[index.value] ?? null)
 const coverUrl = computed(() => (current.value?.hasCover ? `/api/tracks/${current.value.id}/cover` : ''))
@@ -163,6 +149,7 @@ async function loadMore() {
         const res = await api.tracks.page({ limit: PAGE, offset, seed, genre: genre || undefined })
         total = res.total
         offset += PAGE
+        genreLabel.value = res.label ?? ''
         const known = new Set(tracks.value.map((t) => t.id))
         tracks.value.push(...res.items.filter((t) => !known.has(t.id)))
     } finally {
@@ -170,23 +157,23 @@ async function loadMore() {
     }
 }
 
-// '' = the shuffled feed; otherwise 'saved', 'liked' or 'playlist:ID', played in that list's order.
+// '' = the shuffled feed (the Listen tab); otherwise 'saved', 'liked', 'playlist:ID' or 'artist:name',
+// played in that list's order. A genre (from the Library's "Play genre") limits the shuffled feed.
 let source = ''
 let genre = ''
 const querySource = () => (typeof route.query.source === 'string' ? route.query.source : '')
 const queryGenre = () => (typeof route.query.genre === 'string' ? route.query.genre : '')
 
-// Picking a genre (a chip, or a tag on the track) starts a fresh shuffled feed of just that genre.
-function selectGenre(slug) {
-    if (slug === genre && !source) return
-    router.replace({ query: slug ? { genre: slug } : {} })
+// Genres are browsed in the Library: a genre tag on a track opens that genre there.
+function openGenre(slug) {
+    navigateTo({ path: '/library', query: { genre: slug } })
 }
 
 async function init() {
     source = querySource()
     genre = queryGenre()
-    activeGenre.value = source ? null : genre
     sourceLabel.value = ''
+    genreLabel.value = ''
     seed = Math.floor(Math.random() * 1e9) + 1
     offset = 0
     total = 0
@@ -227,7 +214,6 @@ async function init() {
                 if (!genre || (error.statusCode ?? error.status) !== 404) throw error
                 showToast('That genre does not exist')
                 genre = ''
-                activeGenre.value = ''
                 await loadMore()
             }
         }
@@ -237,7 +223,7 @@ async function init() {
     }
 }
 
-// The menu's "Listen" link, a genre chip, or a link from a list can change the source or genre
+// The menu's "Listen" link, or a link from the Library or a list, can change the source or genre
 // while this page stays mounted.
 watch(() => [route.query.source, route.query.genre], () => {
     if (querySource() !== source || queryGenre() !== genre) init()
@@ -481,7 +467,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
     window.removeEventListener('keydown', onKey)
     clearTimeout(toastTimer)
-    clearInterval(genrePoll)
     if (audio) {
         const a = audio
         audio = null // detach first so the events below are ignored

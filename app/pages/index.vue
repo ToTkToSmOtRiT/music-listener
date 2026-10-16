@@ -18,16 +18,16 @@
 
         <section v-if="genreData?.items.length" id="genres">
             <h2 data-aos="fade">Genres</h2>
-            <p class="genres-note" data-aos="fade">Pick a genre to listen to only that kind of music.</p>
+            <p class="genres-note" data-aos="fade">Pick a genre to browse its artists.</p>
             <ul class="genres-list" data-aos="fade" data-aos-duration="1200">
                 <li>
-                    <a href="/listener" class="genre" @click.prevent="go('/listener')">
+                    <a href="/library" class="genre" @click.prevent="go('/library', LIBRARY_REASON)">
                         <strong>All music</strong>
                     </a>
                 </li>
                 <li v-for="g in genreData.items" :key="g.slug">
-                    <a :href="`/listener?genre=${g.slug}`" class="genre"
-                        @click.prevent="go({ path: '/listener', query: { genre: g.slug } })">
+                    <a :href="`/library?genre=${g.slug}`" class="genre"
+                        @click.prevent="go({ path: '/library', query: { genre: g.slug } }, LIBRARY_REASON)">
                         <strong>{{ g.label }}</strong>
                     </a>
                 </li>
@@ -53,11 +53,12 @@ const { data: genreData } = useFetch('/api/genres', { key: 'genres' })
 const user = useUser()
 const modal = useAuthModal()
 const pending = ref(null)
+const LIBRARY_REASON = 'Log in or sign up to browse the library.'
 
-function go(target) {
+function go(target, reason = 'Log in or sign up to start listening.') {
     if (user.value) return navigateTo(target)
     pending.value = target
-    openAuth(true, 'Log in or sign up to start listening.')
+    openAuth(true, reason)
 }
 
 watch(user, (loggedIn) => {
@@ -200,7 +201,7 @@ watch(() => route.query.next, applyNext)
         min-height: clamp(72px, 10vw, 92px);
         padding: 12px;
         border: 1px solid var(--line);
-        border-top: 3px solid var(--accent); // the theme's gold
+        border-top: 3px solid var(--accent); /* the gold accent of the theme */
         border-radius: 14px;
         background: var(--bg-elev);
         text-decoration: none;

@@ -7,6 +7,10 @@ export const useApi = () => ({
   },
   collection: (type) => $fetch('/api/collection', { query: { type } }),
   search: (q) => $fetch('/api/search', { query: { q } }),
+  artists: {
+    list: (genre) => $fetch('/api/artists', { query: genre ? { genre } : {} }),
+    get: (key) => $fetch(`/api/artists/${encodeURIComponent(key)}`)
+  },
   library: {
     get: () => $fetch('/api/library'),
     save: (dir) => $fetch('/api/library', { method: 'PUT', body: { dir } }),

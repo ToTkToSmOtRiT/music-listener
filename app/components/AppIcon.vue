@@ -35,6 +35,7 @@ const ICONS = {
     pencil: ['M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16z'],
     search: ['M11 18a7 7 0 100-14 7 7 0 000 14zM21 21l-4.5-4.5'],
     play: ['M8 5v14l11-7z'],
+    library: ['M4 4h4v16H4z', 'M10 4h4v16h-4z', 'M16 6.2l3.6-.9 3 14.2-3.6.9z'],
     'list-add': ['M3 6h13M3 12h9M3 18h7M18 14v6M15 17h6'],
 }
 

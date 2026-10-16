@@ -22,7 +22,7 @@ npm start
 
 ## Navigation
 
-The home page (`/`) is a welcome page for visitors who are not logged in; a logged-in user who opens it goes to the Feed page instead (the target is `HOME_FOR_USERS` in `app/utils/home.js`), and the menu hides *Home* for them. On that welcome page, **Start listening** and the genre cards open the log in / sign up window for visitors who are not logged in, and after logging in or signing up they continue to what they clicked (for example a genre). The **side menu is for logged-in users only**; visitors who are not logged in get a slim top bar (logo, theme switch, Log in, Sign up) and no menu. The menu: **Feed, News, Listen, My collection, Subscriptions, Playlists**. The button at its top folds it to an icon rail (remembered in a cookie); on phones it becomes a drawer opened from the top bar. *My collection* lists the tracks you saved and liked. *Playlists* are your own ordered lists. Feed, News and Subscriptions are placeholder pages for now.
+The home page (`/`) is a welcome page for visitors who are not logged in; a logged-in user who opens it goes to the Feed page instead (the target is `HOME_FOR_USERS` in `app/utils/home.js`), and the menu hides *Home* for them. On that welcome page, **Start listening** and the genre cards open the log in / sign up window for visitors who are not logged in, and after logging in or signing up they continue to what they clicked (for example a genre). The **side menu is for logged-in users only**; visitors who are not logged in get a slim top bar (logo, theme switch, Log in, Sign up) and no menu. The menu: **Feed, News, Listen, Library, My collection, Subscriptions, Playlists**. The button at its top folds it to an icon rail (remembered in a cookie); on phones it becomes a drawer opened from the top bar. *My collection* lists the tracks you saved and liked. *Playlists* are your own ordered lists. Feed, News and Subscriptions are placeholder pages for now.
 
 ## Access
 
@@ -42,9 +42,13 @@ The home page (`/`) is a welcome page for visitors who are not logged in; a logg
 
 Two themes, switched from the navbar and remembered in a cookie: **Ivory** (light) and **Ebony** (dark, the default). All colours are CSS variables in `app/assets/css/theme.css`; components only use those variables, so adding a theme means adding one more `:root[data-theme='...']` block.
 
+## The Library (`/library`)
+
+Where music is browsed. A search bar (artists and songs, live), genre tabs (**All**, one per genre found, **Unsorted**) and, under each genre, its artists (the biggest first, **Show all** for the rest; a single genre lists every artist A to Z). Clicking an artist opens their tracks; **Play all** or a track plays through that artist in order (`/listener?source=artist:name`). **Play <genre>** shuffles just that genre (`/listener?genre=rock`). The home page genre cards and the genre tags on a playing track lead here. API: `/api/artists`, `/api/artists/<key>`, and `/api/search` (artists + songs).
+
 ## The listening page (`/listener`)
 
-A full-screen feed, one track at a time.
+The **Listen** tab: a full-screen feed of random tracks from the whole library, one at a time (a "For you" mode is planned).
 
 - **Change track:** swipe up/down, mouse wheel, or `↓`/`↑` (`j`/`k`). Each track has its own URL (`/listener?track=ID`), which is what Share copies.
 - **Player:** play/pause (`Space`), seek bar, volume meter drawn as piano keys, with mute (`m`). Volume is remembered.
@@ -53,7 +57,7 @@ A full-screen feed, one track at a time.
 
 ## Genres
 
-The listening page has a row of genre sections (**All**, one per genre found, and **Unsorted**); the home page shows a gold card per genre. Opening a genre plays a shuffled feed of only those tracks (`/listener?genre=rock`). The genres on a track are shown under the artist and can be clicked.
+The genre tabs live in the **Library**; the home page shows a gold card per genre. The genres of a track are shown under its artist in the player and open that genre in the Library.
 
 - **Where genres come from:** the genre tag stored in each file (ID3 `TCON`). Free-text tags such as `Alt. Rock` or `Post-hardcore, alternative rock, nu metal` are matched to a fixed list of genres by the patterns in `server/utils/genres.js` (English, Russian and Japanese labels; garbled Windows-1251 tags are repaired). Junk such as `Other` or `Cover` is ignored. A track can have several genres.
 - **Tracks without a usable tag** borrow a genre from other tracks by the same artist (or, failing that, the same folder) when those mostly agree. The rest are **Unsorted**. Only genres that have tracks are shown.
