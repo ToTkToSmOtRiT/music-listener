@@ -22,7 +22,14 @@ npm start
 
 ## Navigation
 
-A side menu: **Home, Listen, My collection, Feed, News, Subscriptions, Playlist**. The button at its top folds it to an icon rail (remembered in a cookie); on phones it becomes a drawer opened from the top bar. *My collection* lists the tracks you saved and liked. Feed, News, Subscriptions and Playlist are placeholder pages for now.
+A side menu: **Home, Listen, My collection, Feed, News, Subscriptions, Playlist**. The button at its top folds it to an icon rail (remembered in a cookie); on phones it becomes a drawer opened from the top bar. *My collection* lists the tracks you saved and liked. *Playlists* are your own ordered lists. Feed, News and Subscriptions are placeholder pages for now.
+
+## Playlists and playing lists
+
+- **Add to a playlist** with the Playlist button on the listening page, or the `+` button on a track in My collection. You can create a playlist right there.
+- **Playlist page:** add songs by searching the library, sort (title, artist, date added, shuffle), move tracks with the arrow buttons or by dragging the grip, rename, remove, delete. Every change is saved on the server.
+- **Playing a list:** opening a track from Saved, Liked or a playlist (or pressing Play / Play all) plays through that list in order, shown as *Playing from ...* in the player. The URL looks like `/listener?source=saved&track=ID` (`source` is `saved`, `liked` or `playlist:ID`). The menu's Listen link returns to the shuffled feed.
+- Playlists are private to their owner.
 
 ## Themes
 

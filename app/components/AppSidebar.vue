@@ -15,7 +15,7 @@
             <nav class="sidebar__nav">
                 <ul>
                     <li v-for="item in items" :key="item.to">
-                        <NuxtLink :to="item.to" class="sidebar__link" exact-active-class="is-active"
+                        <NuxtLink :to="item.to" class="sidebar__link" exact-active-class="is-active" :active-class="item.to === '/' ? '' : 'is-active'"
                             :title="collapsed ? item.label : undefined">
                             <AppIcon :name="item.icon" />
                             <span class="sidebar__label">{{ item.label }}</span>
@@ -74,7 +74,7 @@ const items = [
     { to: '/feed', label: 'Feed', icon: 'feed', soon: true },
     { to: '/news', label: 'News', icon: 'news', soon: true },
     { to: '/subscriptions', label: 'Subscriptions', icon: 'subscriptions', soon: true },
-    { to: '/playlists', label: 'Playlist', icon: 'playlist', soon: true },
+    { to: '/playlists', label: 'Playlists', icon: 'playlist' },
 ]
 
 // The button folds the menu on desktop and closes the drawer on phones.

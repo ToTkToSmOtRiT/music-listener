@@ -26,6 +26,16 @@ const ICONS = {
     login: ['M15 3h4a1 1 0 011 1v16a1 1 0 01-1 1h-4', 'M10 17l5-5-5-5M15 12H3'],
     logout: ['M9 21H5a1 1 0 01-1-1V4a1 1 0 011-1h4', 'M16 17l5-5-5-5M21 12H9'],
     user: ['M20 21a8 8 0 10-16 0', 'M12 12a4 4 0 100-8 4 4 0 000 8z'],
+    plus: ['M12 5v14M5 12h14'],
+    check: ['M5 12l5 5L20 7'],
+    trash: ['M4 7h16M10 11v6M14 11v6M6 7l1 13a1 1 0 001 1h8a1 1 0 001-1l1-13M9 7V4h6v3'],
+    up: ['M12 19V5M5 12l7-7 7 7'],
+    down: ['M12 5v14M19 12l-7 7-7-7'],
+    grip: ['M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01'],
+    pencil: ['M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16z'],
+    search: ['M11 18a7 7 0 100-14 7 7 0 000 14zM21 21l-4.5-4.5'],
+    play: ['M8 5v14l11-7z'],
+    'list-add': ['M3 6h13M3 12h9M3 18h7M18 14v6M15 17h6'],
 }
 
 const paths = computed(() => ICONS[props.name] ?? [])

@@ -2,7 +2,7 @@
     <section class="page collection">
         <header class="page__head">
             <h1>My collection</h1>
-            <p>Tracks you saved and liked.</p>
+            <p>Tracks you saved and liked. Opening one plays through the whole list.</p>
         </header>
 
         <div v-if="!user" class="collection__empty">
@@ -11,9 +11,15 @@
         </div>
 
         <template v-else>
-            <div class="collection__tabs" role="tablist">
-                <button v-for="t in tabs" :key="t.id" type="button" role="tab" :aria-selected="tab === t.id"
-                    :class="{ on: tab === t.id }" @click="tab = t.id">{{ t.label }}</button>
+            <div class="collection__bar">
+                <div class="collection__tabs" role="tablist">
+                    <button v-for="t in tabs" :key="t.id" type="button" role="tab" :aria-selected="tab === t.id"
+                        :class="{ on: tab === t.id }" @click="tab = t.id">{{ t.label }}</button>
+                </div>
+                <NuxtLink v-if="items.length" :to="{ path: '/listener', query: { source: tab } }"
+                    class="btn btn--solid">
+                    <AppIcon name="play" :size="16" /> Play all
+                </NuxtLink>
             </div>
 
             <p v-if="status === 'loading'" class="collection__note">Loading…</p>
@@ -23,8 +29,8 @@
             </p>
 
             <ul v-else class="collection__grid">
-                <li v-for="t in items" :key="t.id">
-                    <NuxtLink :to="{ path: '/listener', query: { track: t.id } }" class="tile">
+                <li v-for="t in items" :key="t.id" class="tile">
+                    <NuxtLink :to="{ path: '/listener', query: { source: tab, track: t.id } }" class="tile__link">
                         <span class="tile__art" :style="t.hasCover ? null : tileStyle(t.id)">
                             <img v-if="t.hasCover" :src="`/api/tracks/${t.id}/cover`" alt="" loading="lazy">
                             <AppIcon v-else name="listen" :size="30" />
@@ -32,9 +38,15 @@
                         <strong>{{ t.title }}</strong>
                         <small>{{ t.artist }}</small>
                     </NuxtLink>
+                    <button type="button" class="tile__add" :aria-label="`Add ${t.title} to a playlist`"
+                        title="Add to playlist" @click="pickerTrack = t.id">
+                        <AppIcon name="list-add" :size="18" />
+                    </button>
                 </li>
             </ul>
         </template>
+
+        <PlaylistPicker :open="pickerTrack !== null" :track-id="pickerTrack" @close="pickerTrack = null" />
     </section>
 </template>
 
@@ -50,6 +62,7 @@ const tabs = [
 const tab = ref('saved')
 const items = ref([])
 const status = ref('loading')
+const pickerTrack = ref(null)
 
 let requestId = 0
 async function load() {
@@ -78,9 +91,17 @@ watch([tab, user], load)
 
 <style lang="scss">
 .collection {
+    &__bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+
     &__tabs {
         display: inline-flex;
-        margin-bottom: 22px;
         padding: 4px;
         border-radius: 999px;
         background: var(--bg-sunk);
@@ -120,10 +141,14 @@ watch([tab, user], load)
 }
 
 .tile {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    text-decoration: none;
+    position: relative;
+
+    &__link {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        text-decoration: none;
+    }
 
     &__art {
         display: grid;
@@ -143,9 +168,43 @@ watch([tab, user], load)
         }
     }
 
-    &:hover &__art {
+    &__link:hover &__art {
         transform: translateY(-3px);
         box-shadow: var(--shadow);
+    }
+
+    &__add {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--glass-line);
+        border-radius: 50%;
+        background: var(--glass);
+        backdrop-filter: blur(8px);
+        color: var(--text);
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.15s, transform 0.15s;
+
+        &:hover {
+            transform: scale(1.08);
+        }
+    }
+
+    // Always visible on touch screens, which have no hover.
+    &:hover &__add,
+    &__add:focus-visible {
+        opacity: 1;
+    }
+
+    @media (hover: none) {
+        &__add {
+            opacity: 1;
+        }
     }
 
     strong {

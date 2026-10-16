@@ -66,6 +66,10 @@
                             stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.4 6.3 20.5l1.2-6.4L2.8 9.7l6.4-.8z" /></svg>
                         <span>Save</span>
                     </button>
+                    <button type="button" class="rail__btn" aria-label="Add to playlist" @click="openPicker">
+                        <AppIcon name="list-add" :size="26" />
+                        <span>Playlist</span>
+                    </button>
                     <button type="button" class="rail__btn" aria-label="Share" @click="share">
                         <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v14" /></svg>
@@ -74,12 +78,17 @@
                 </div>
 
                 <VolumeControl v-model="volume" v-model:muted="muted" class="stage__vol" />
-                <p v-if="current && hint" class="stage__hint">Swipe up or down to change the track</p>
+                <p v-if="current && sourceLabel" class="stage__hint stage__hint--source">
+                    Playing from {{ sourceLabel }} &middot; {{ index + 1 }} of {{ tracks.length }}
+                </p>
+                <p v-else-if="current && hint" class="stage__hint">Swipe up or down to change the track</p>
             </div>
 
             <CommentsPanel v-if="current" :key="current.id" ref="panel" :track-id="current.id" :count="current.comments"
                 :open="commentsOpen" @close="commentsOpen = false" @added="current.comments += 1" />
         </div>
+
+        <PlaylistPicker :open="pickerOpen" :track-id="current?.id ?? null" @close="pickerOpen = false" />
 
         <div v-if="commentsOpen" class="feed__dim" @click="commentsOpen = false" />
         <p v-if="toast" class="feed__toast" role="status">{{ toast }}</p>
@@ -105,6 +114,8 @@ const commentsOpen = ref(false)
 const toast = ref('')
 const hint = ref(true)
 const panel = ref(null)
+const pickerOpen = ref(false)
+const sourceLabel = ref('') // e.g. "Saved" or a playlist name; empty for the shuffled feed
 
 const current = computed(() => tracks.value[index.value] ?? null)
 const coverUrl = computed(() => (current.value?.hasCover ? `/api/tracks/${current.value.id}/cover` : ''))
@@ -137,27 +148,66 @@ async function loadMore() {
     }
 }
 
+// '' = the shuffled feed; otherwise 'saved', 'liked' or 'playlist:ID', played in that list's order.
+let source = ''
+const querySource = () => (typeof route.query.source === 'string' ? route.query.source : '')
+
 async function init() {
+    source = querySource()
+    sourceLabel.value = ''
     seed = Math.floor(Math.random() * 1e9) + 1
+    offset = 0
+    total = 0
+    tracks.value = []
+    index.value = 0
+    status.value = 'loading'
     try {
         const wanted = Number(route.query.track)
-        if (route.query.track && Number.isInteger(wanted)) {
-            const { items } = await api.tracks.byIds([wanted])
-            tracks.value.push(...items)
+        const hasWanted = Boolean(route.query.track) && Number.isInteger(wanted)
+
+        if (source) {
+            try {
+                // Lists are small, so the whole list is loaded and the player starts at the chosen track.
+                const res = await api.tracks.page({ source, limit: 200, offset: 0 })
+                tracks.value = res.items
+                total = res.total
+                offset = res.total
+                sourceLabel.value = res.label
+                const at = hasWanted ? res.items.findIndex((t) => t.id === wanted) : -1
+                index.value = at >= 0 ? at : 0
+                wantPlay.value = true // opened from a list: keep playing through it
+            } catch (error) {
+                const code = error.statusCode ?? error.status
+                showToast(code === 401 ? 'Log in to play your lists' : 'That list is not available')
+                source = ''
+                tracks.value = []
+            }
         }
-        await loadMore()
+
+        if (!source) {
+            if (hasWanted) {
+                const { items } = await api.tracks.byIds([wanted])
+                tracks.value.push(...items)
+            }
+            await loadMore()
+        }
         status.value = tracks.value.length ? 'ready' : 'empty'
     } catch (error) {
         status.value = 'error'
     }
 }
 
+// The menu's "Listen" link (no source) or a link from a list can change the source while this page stays mounted.
+watch(() => route.query.source, () => {
+    if (querySource() !== source) init()
+})
+
 function go(step) {
     const n = tracks.value.length
     if (!n) return
     let next = index.value + step
     if (next < 0) return showToast('This is where your feed starts')
-    if (next >= n) next = 0 // feed exhausted: start over
+    if (next >= n) next = 0 // end of the feed or list: start over
     direction.value = step > 0 ? 'next' : 'prev'
     index.value = next
     hint.value = false
@@ -246,7 +296,9 @@ watch(() => current.value?.id, (id) => {
     if (id == null) return
     loadAudio(wantPlay.value)
     updateMediaSession()
-    router.replace({ query: { track: id } })
+    const query = { ...route.query, track: id }
+    if (!source) delete query.source
+    router.replace({ query })
     const upcoming = tracks.value[index.value + 1]
     if (upcoming?.hasCover) new Image().src = `/api/tracks/${upcoming.id}/cover` // warm the next background
 })
@@ -286,6 +338,7 @@ function onWheel(event) {
 }
 
 function onKey(event) {
+    if (pickerOpen.value) return
     const el = event.target instanceof Element ? event.target : document.body
     if (el.closest('input, textarea, [contenteditable]') || event.ctrlKey || event.metaKey || event.altKey) return
     const keys = { ArrowDown: () => go(1), j: () => go(1), ArrowUp: () => go(-1), k: () => go(-1), m: () => { muted.value = !muted.value } }
@@ -332,6 +385,11 @@ async function share() {
     } catch (error) {
         if (error.name !== 'AbortError') showToast(url)
     }
+}
+
+function openPicker() {
+    if (!user.value) return openAuth(true)
+    pickerOpen.value = true
 }
 
 async function openComments() {
@@ -477,6 +535,14 @@ onBeforeUnmount(() => {
         white-space: nowrap;
         color: var(--text-2);
         animation: hint-pulse 2.4s ease-in-out infinite;
+
+        &--source {
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            animation: none;
+            color: var(--text);
+        }
     }
 }
 
@@ -628,7 +694,15 @@ onBeforeUnmount(() => {
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+
+    @media (max-height: 700px) {
+        gap: 6px;
+
+        .rail__btn {
+            padding: 6px 0;
+        }
+    }
 
     &__btn {
         display: flex;
