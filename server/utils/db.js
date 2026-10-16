@@ -69,6 +69,34 @@ CREATE TABLE IF NOT EXISTS playlist_tracks (
 
 CREATE INDEX IF NOT EXISTS playlist_tracks_position ON playlist_tracks(playlist_id, position);
 
+-- "For you": raw plays are kept for 90 days; what is learned from them (and from likes, saves and
+-- playlist adds) lives in the taste table, one decaying score per artist, genre or track and user.
+CREATE TABLE IF NOT EXISTS plays (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    track_id  INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    played_at INTEGER NOT NULL DEFAULT (unixepoch()),
+    listened  REAL NOT NULL,
+    duration  REAL NOT NULL,
+    outcome   TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS plays_user_time ON plays(user_id, played_at);
+
+CREATE TABLE IF NOT EXISTS taste (
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    kind       TEXT NOT NULL,
+    key        TEXT NOT NULL,
+    score      REAL NOT NULL,
+    updated_at INTEGER NOT NULL,
+    PRIMARY KEY (user_id, kind, key)
+);
+
+CREATE TABLE IF NOT EXISTS taste_settings (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    enabled INTEGER NOT NULL DEFAULT 1
+);
+
 CREATE TABLE IF NOT EXISTS comments (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     track_id    INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,

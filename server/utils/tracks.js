@@ -63,6 +63,8 @@ export function setFlag(event, table, on) {
     const db = useDb()
     if (on) db.prepare(`INSERT OR IGNORE INTO ${t} (user_id, track_id) VALUES (?, ?)`).run(user.id, track.id)
     else db.prepare(`DELETE FROM ${t} WHERE user_id = ? AND track_id = ?`).run(user.id, track.id)
+    // a like or a save is a strong signal for "For you"; taking it back undoes it
+    addSignal(user.id, track.id, (on ? 1 : -1) * (table === 'likes' ? SIGNAL.like : SIGNAL.favourite))
     return { on, count: db.prepare(`SELECT COUNT(*) AS n FROM ${t} WHERE track_id = ?`).get(track.id).n }
 }
 

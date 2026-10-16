@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const id = Number(db.prepare('INSERT INTO playlists (user_id, name) VALUES (?, ?)').run(user.id, name).lastInsertRowid)
-    if (trackId !== null) addToPlaylist(id, trackId)
+    if (trackId !== null && addToPlaylist(id, trackId)) addSignal(user.id, trackId, SIGNAL.playlist)
 
     setResponseStatus(event, 201)
     return listPlaylists(user.id, trackId).find((p) => p.id === id)
