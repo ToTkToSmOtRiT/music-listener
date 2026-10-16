@@ -77,3 +77,21 @@ export function shuffled(items, seed) {
     }
     return out
 }
+
+// A "source" is an ordered list the player can play through instead of the shuffled feed:
+// 'saved', 'liked' or 'playlist:ID'. Returns the track ids in play order and a display label.
+export function listSource(source, user) {
+    const db = useDb()
+    if (source === 'saved' || source === 'liked') {
+        const table = source === 'saved' ? 'favourites' : 'likes'
+        const ids = db.prepare(`SELECT track_id FROM ${table} WHERE user_id = ? ORDER BY rowid DESC LIMIT 1000`)
+            .all(user.id).map((r) => r.track_id)
+        return { ids, label: source === 'saved' ? 'Saved' : 'Liked' }
+    }
+    const match = /^playlist:(\d+)$/.exec(source)
+    if (match) {
+        const playlist = db.prepare('SELECT id, name FROM playlists WHERE id = ? AND user_id = ?').get(Number(match[1]), user.id)
+        if (playlist) return { ids: playlistTrackIds(playlist.id), label: playlist.name }
+    }
+    throw createError({ statusCode: 404, statusMessage: 'List not found' })
+}
